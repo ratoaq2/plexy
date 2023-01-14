@@ -74,6 +74,14 @@ You can exclude this codec when saving your preferences:
 >> plexy --url http://mylocalplex:32400 --token ABCDEF1234567890 preferences --language pt-BR -A truehd original
 ```
 
+And print the full summary of changes:
+```bash
+>> plexy --url http://ratostation.nas:32400 --token FLRJstK4r4TiR4_Soafq preferences -f -l en --title "The Matrix (1999)" original
+Configuring watching preferences  [####################################]  100%
+1 movie changed out of 1 selected movie
+The Matrix (1999) changed from pt-BR: Português (SRT External) to no subtitles
+```
+
 
 All available CLI options:
 ```bash
@@ -105,6 +113,12 @@ Options:
   --debug                         Print useful information for debugging and for reporting bugs.
   --help                          Show this message and exit.
 ```
+
+
+## Using Docker
+
+
+    docker run -it --rm plexy --url http://mylocalplex:32400 --token ABCDEF1234567890 preferences --language pt-BR -A truehd original
 
 
 ## Installation

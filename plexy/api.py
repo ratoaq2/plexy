@@ -436,6 +436,7 @@ class VideoPart:
     def save_preferences(self, preferences: Preferences):
         previous_selected_audio = self.selected_audio
         previous_selected_subtitle = self.selected_subtitle
+        selected_subtitle = previous_selected_subtitle
 
         audio_streams = self.get_sorted_audio_streams(preferences)
         selected_audio = audio_streams[0] if audio_streams else previous_selected_audio
@@ -451,6 +452,7 @@ class VideoPart:
             if previous_selected_subtitle:
                 logger.debug('%s - no subtitle selected', self.title)
                 self.unselect_subtitle()
+                selected_subtitle = None
         else:
             subtitle_streams = self.get_sorted_subtitle_streams(preferences)
             selected_subtitle = subtitle_streams[0] if len(subtitle_streams) else previous_selected_subtitle
@@ -461,8 +463,8 @@ class VideoPart:
                              selected_subtitle)
                 self.select_subtitle(selected_subtitle)
 
-        if self.selected_audio != previous_selected_audio or self.selected_subtitle != previous_selected_subtitle:
-            return Change(self, previous_selected_audio, previous_selected_subtitle)
+        if selected_audio != previous_selected_audio or selected_subtitle != previous_selected_subtitle:
+            return Change(self, previous_selected_audio, previous_selected_subtitle, selected_audio, selected_subtitle)
 
     def __str__(self):
         return f'{self.title}'
@@ -476,12 +478,14 @@ class Change:
     def __init__(self,
                  video: VideoPart,
                  previous_audio: Stream,
-                 previous_subtitle: Stream):
+                 previous_subtitle: Stream,
+                 audio: Stream,
+                 subtitle: Stream):
         self.video = video
         self.previous_audio = previous_audio
         self.previous_subtitle = previous_subtitle
-        self.audio = video.selected_audio
-        self.subtitle = video.selected_subtitle
+        self.audio = audio
+        self.subtitle = subtitle
 
     def __repr__(self):
         return f'<{self.__class__.__name__} - {self.video}]>'
