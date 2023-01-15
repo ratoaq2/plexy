@@ -7,8 +7,8 @@ import plexapi.media
 
 
 def get_title(stream: plexapi.media.MediaPartStream):
-    return sorted([t for t in {stream.extendedDisplayTitle, stream.displayTitle, stream.title} if t],
-                  key=lambda x: len(x),
+    return sorted([stream.extendedDisplayTitle, stream.displayTitle, stream.title],
+                  key=lambda x: len(x) if x else 0,
                   reverse=True)[0]
 
 

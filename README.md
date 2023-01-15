@@ -125,22 +125,28 @@ Usage: plexy preferences [OPTIONS] {original|dubbed}
   Original prefers the original audio and an additional subtitle track if the audio is not in the desired language.
 
 Options:
-  -L, --library TEXT              Library to be used. e.g: Movies, Shows
+  -L, --library TEXT              Library to be used. e.g: Movies, Shows.
   -t, --title TITLE               Filter for titles in your library. It could refer to a movie, a
                                   show, a season or an episode. e.g: Avatar, The Matrix (1999),
                                   The Boys s2, Chernobyl s01e03, Game of Thrones (2011) s03e09
-  -l, --language LANGUAGE         Desired watching language as IETF code, e.g.: en, pt-BR
+  -l, --language LANGUAGE         Desired watching language as IETF code, e.g.: en, pt-BR.
   -a, --audio-codec [dca|aac|ac3|eac3|truehd|flac|mp2|mp3|vorbis|pcm]
-                                  Accepted audio codec
+                                  Accepted audio codec.
   -A, --excluded-audio-codec [dca|aac|ac3|eac3|truehd|flac|mp2|mp3|vorbis|pcm]
-                                  Excluded audio codec
+                                  Excluded audio codec.
   -s, --subtitle-codec [srt|pgs|vobsub|ass|mov_text|eia_608|dvb_subtitle]
-                                  Accepted subtitle codec
+                                  Accepted subtitle codec.
   -S, --excluded-subtitle-codec [srt|pgs|vobsub|ass|mov_text|eia_608|dvb_subtitle]
-                                  Excluded subtitle codec
-  -n, --newer AGE                 Filter movies/episodes newer than AGE, e.g. 12h, 1w2d.
-  -o, --older AGE                 Filter movies/episodes older than AGE, e.g. 12h, 1w2d.
+                                  Excluded subtitle codec.
+  -n, --newer-than AGE            Filter movies/episodes newer than AGE, e.g. 12h, 1w2d
+  -o, --older-than AGE            Filter movies/episodes older than AGE, e.g. 12h, 1w2d
   -f, --full-summary              Print the full summary of changed preferences.
+  --skip-watching                 Skip movies/episodes that watch is in progress.
+  --keep-selected-audio           Do not change the selected audio. Useful when using original
+                                  watching preference.
+  --keep-selected-subtitle        Do not change the selected subtitle.
+  --force-subtitles               Select subtitles, even when the audio already matches the
+                                  desired language.
   --debug                         Print useful information for debugging and for reporting bugs.
   --help                          Show this message and exit.
 ```

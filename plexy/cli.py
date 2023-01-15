@@ -170,7 +170,7 @@ def plexy(ctx: click.Context, url: str, token: str):
 @click.option('--keep-selected-audio', is_flag=True,
               help='Do not change the selected audio. Useful when using original watching preference.')
 @click.option('--keep-selected-subtitle', is_flag=True,
-              help='If a subtitle is already selected, do not change it.')
+              help='Do not change the selected subtitle.')
 @click.option('--force-subtitles', is_flag=True,
               help='Select subtitles, even when the audio already matches the desired language.')
 @click.option('--debug', is_flag=True, help='Print useful information for debugging and for reporting bugs.')
