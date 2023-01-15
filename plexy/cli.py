@@ -142,7 +142,7 @@ def set_default_config(ctx: click.Context, param: typing.Optional[click.Paramete
 
 @click.group(context_settings={'max_content_width': 100}, epilog=f'Suggestions and bug reports: {__url__}')
 @click.option('-u', '--url', required=True, help='Plex server address, e.g.: http://myserver:32400')
-@click.option('-t', '--token', required=True, help='Plex token')
+@click.option('-t', '--token', required=True, help='Plex token.')
 @click.option('--config', type=click.Path(exists=True),
               callback=set_default_config, is_eager=True, expose_value=False, help='Path to the config file.')
 @click.version_option(__version__)
@@ -154,18 +154,25 @@ def plexy(ctx: click.Context, url: str, token: str):
 
 
 @plexy.command()
-@click.option('-L', '--library', multiple=True, help='Library to be used. e.g: Movies, Shows')
+@click.option('-L', '--library', multiple=True, help='Library to be used. e.g: Movies, Shows.')
 @click.option('-t', '--title', type=TITLE, multiple=True,
               help='Filter for titles in your library. It could refer to a movie, a show, a season or an episode. '
                    'e.g: Avatar, The Matrix (1999), The Boys s2, Chernobyl s01e03, Game of Thrones (2011) s03e09')
-@click.option('-l', '--language', type=LANGUAGE, help='Desired watching language as IETF code, e.g.: en, pt-BR')
-@click.option('-a', '--audio-codec', type=AUDIO_CODEC, multiple=True, help='Accepted audio codec')
-@click.option('-A', '--excluded-audio-codec', type=AUDIO_CODEC, multiple=True, help='Excluded audio codec')
-@click.option('-s', '--subtitle-codec', type=SUBTITLE_CODEC, multiple=True, help='Accepted subtitle codec')
-@click.option('-S', '--excluded-subtitle-codec', type=SUBTITLE_CODEC, multiple=True, help='Excluded subtitle codec')
-@click.option('-n', '--newer', type=AGE, help='Filter movies/episodes newer than AGE, e.g. 12h, 1w2d.')
-@click.option('-o', '--older', type=AGE, help='Filter movies/episodes older than AGE, e.g. 12h, 1w2d.')
+@click.option('-l', '--language', type=LANGUAGE, help='Desired watching language as IETF code, e.g.: en, pt-BR.')
+@click.option('-a', '--audio-codec', type=AUDIO_CODEC, multiple=True, help='Accepted audio codec.')
+@click.option('-A', '--excluded-audio-codec', type=AUDIO_CODEC, multiple=True, help='Excluded audio codec.')
+@click.option('-s', '--subtitle-codec', type=SUBTITLE_CODEC, multiple=True, help='Accepted subtitle codec.')
+@click.option('-S', '--excluded-subtitle-codec', type=SUBTITLE_CODEC, multiple=True, help='Excluded subtitle codec.')
+@click.option('-n', '--newer-than', type=AGE, help='Filter movies/episodes newer than AGE, e.g. 12h, 1w2d')
+@click.option('-o', '--older-than', type=AGE, help='Filter movies/episodes older than AGE, e.g. 12h, 1w2d')
 @click.option('-f', '--full-summary', is_flag=True, help='Print the full summary of changed preferences.')
+@click.option('--skip-watching', is_flag=True, help='Skip movies/episodes that watch is in progress.')
+@click.option('--keep-selected-audio', is_flag=True,
+              help='Do not change the selected audio. Useful when using original watching preference.')
+@click.option('--keep-selected-subtitle', is_flag=True,
+              help='If a subtitle is already selected, do not change it.')
+@click.option('--force-subtitles', is_flag=True,
+              help='Select subtitles, even when the audio already matches the desired language.')
 @click.option('--debug', is_flag=True, help='Print useful information for debugging and for reporting bugs.')
 @click.argument('watching-preference', required=True, type=WATCHING_PREFERENCE, nargs=1)
 @click.pass_obj
@@ -177,10 +184,14 @@ def preferences(settings: Settings,
                 excluded_audio_codec: typing.Tuple[str],
                 subtitle_codec: typing.Tuple[str],
                 excluded_subtitle_codec: typing.Tuple[str],
-                newer: typing.Optional[str],
-                older: typing.Optional[str],
+                newer_than: typing.Optional[str],
+                older_than: typing.Optional[str],
                 watching_preference: WatchingPreference,
                 full_summary: bool,
+                skip_watching: bool,
+                keep_selected_audio: bool,
+                keep_selected_subtitle: bool,
+                force_subtitles: bool,
                 debug: bool):
     """Your watching preferences
 
@@ -198,8 +209,15 @@ def preferences(settings: Settings,
                         audio_codecs=set(audio_codec),
                         excluded_audio_codecs=set(excluded_audio_codec),
                         subtitle_codecs=set(subtitle_codec),
-                        excluded_subtitle_codecs=set(excluded_subtitle_codec))
-    criteria = Criteria(libraries=list(library), titles=list(title), newer=newer, older=older)
+                        excluded_subtitle_codecs=set(excluded_subtitle_codec),
+                        keep_selected_audio=keep_selected_audio,
+                        keep_selected_subtitle=keep_selected_subtitle,
+                        force_subtitles=force_subtitles)
+    criteria = Criteria(libraries=list(library),
+                        titles=list(title),
+                        newer_than=newer_than,
+                        older_than=older_than,
+                        skip_watching=skip_watching)
 
     videos = Plex(settings).search(criteria)
 
