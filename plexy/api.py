@@ -188,7 +188,7 @@ class Criteria:
     def __str__(self):
         text = ''
         if self.libraries:
-            text += f' in {",".join(self.libraries)}'
+            text += f' in {", ".join(self.libraries)}'
         if self.titles:
             text += ' or'.join([f' with title "{t}"' for t in self.titles])
         if self.newer:
