@@ -1,7 +1,11 @@
 import enum
+import json
 import logging
+import os
 import re
 import typing
+
+from appdirs import AppDirs
 
 import babelfish
 
@@ -18,11 +22,12 @@ from plexy import (
     SubtitleCodec,
     Title,
     WatchingPreference,
+    __title__,
     __url__,
     __version__,
 )
 
-logger = logging.getLogger('plexy')
+logger = logging.getLogger(__title__)
 
 
 class EnumParamType(click.Choice):
@@ -78,6 +83,8 @@ TITLE = TitleParamType()
 AUDIO_CODEC = EnumParamType(AudioCodec)
 SUBTITLE_CODEC = EnumParamType(SubtitleCodec)
 
+dirs = AppDirs(__title__)
+
 T = typing.TypeVar('T')
 
 
@@ -103,14 +110,47 @@ class DebugProgressBar(typing.Generic[T]):
             return self.progressbar.__exit__(exc_type, exc_val, exc_tb)
 
 
+def read_config(config: str):
+    with open(config, 'r', encoding='utf-8') as f:
+        if config.endswith('.json'):
+            return json.load(f)
+        elif config.endswith('.yml') or config.endswith('.yaml'):
+            import yaml
+            return yaml.safe_load(f)
+        else:
+            raise click.BadParameter(f'Invalid config file {config}')
+
+
+def set_default_config(ctx: click.Context, param: typing.Optional[click.Parameter], config: typing.Optional[str]):
+    default_map: typing.Dict[str, typing.Any] = {}
+
+    # load first files from user config dir and current working dir
+    for name, d in {'config': dirs.user_config_dir, __title__: os.getcwd()}.items():
+        for ext in ('.json', '.yml', '.yaml'):
+            config_path = os.path.join(d, f'{name}{ext}')
+            if os.path.isfile(config_path):
+                default_map.update(read_config(config_path))
+
+    if config and os.path.exists(config):
+        # and override values with user provided config
+        default_map.update(read_config(config))
+
+    ctx.default_map = default_map
+
+    return config
+
+
 @click.group(context_settings={'max_content_width': 100}, epilog=f'Suggestions and bug reports: {__url__}')
 @click.option('-u', '--url', required=True, help='Plex server address, e.g.: http://myserver:32400')
 @click.option('-t', '--token', required=True, help='Plex token')
+@click.option('--config', type=click.Path(exists=True),
+              callback=set_default_config, is_eager=True, expose_value=False, help='Path to the config file.')
 @click.version_option(__version__)
 @click.pass_context
 def plexy(ctx: click.Context, url: str, token: str):
     """Your Plex, your way."""
-    ctx.obj = Settings(url=url, token=token)
+    settings = Settings(url=url, token=token)
+    ctx.obj = settings
 
 
 @plexy.command()

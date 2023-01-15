@@ -76,7 +76,38 @@ You can exclude this codec when saving your preferences:
 
 And print the full summary of changes:
 ```bash
->> plexy --url http://ratostation.nas:32400 --token FLRJstK4r4TiR4_Soafq preferences -f -l en --title "The Matrix (1999)" original
+>> plexy --url http://mylocalplex:32400 --token ABCDEFGHIJ1234567890 preferences -f -l en --title "The Matrix (1999)" original
+Configuring watching preferences  [####################################]  100%
+1 movie changed out of 1 selected movie
+The Matrix (1999) changed from pt-BR: Português (SRT External) to no subtitles
+```
+
+
+You can also define your configuration options in a `json` or `yaml` file:
+```yaml
+url: http://myplexserver:32400
+token: ABCDEFGHIJ1234567890
+preferences:
+  library:
+    - Movies
+    - TV Shows
+  excluded_subtitle_codec:
+    - eia_608
+  full_summary: True
+  language: pt-BR
+  watching_preference: original
+```
+
+By default, plexy will load `config.json`, `config.yaml` or `config.yml` file from the folders:
+- Mac OS: `~/Library/Preferences/plexy`
+- Linux: `~/.config/plexy/`
+- Windows: `C:\Users\<USER>\AppData\Local\plexy\plexy`
+
+And then update the configuration with data from `plexy.json`, `plexy.yaml` or `plexy.yml` in the current working directory.
+
+You can pass the configuration to use with the `--config` parameter:
+```bash
+>> plexy --config myconfig.yml preferences
 Configuring watching preferences  [####################################]  100%
 1 movie changed out of 1 selected movie
 The Matrix (1999) changed from pt-BR: Português (SRT External) to no subtitles
