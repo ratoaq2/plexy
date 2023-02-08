@@ -55,10 +55,10 @@ class LanguageParamType(click.ParamType):
 
 class AgeParamType(click.ParamType):
     name = 'age'
-    language_re = re.compile(r'^(?:(?P<weeks>\d+?)w)?(?:(?P<days>\d+?)d)?(?:(?P<hours>\d+?)h)?$')
+    age_re = re.compile(r'^(?:(?P<weeks>\d+?)w)?(?:(?P<days>\d+?)d)?(?:(?P<hours>\d+?)h)?$')
 
     def convert(self, value: typing.Any, param: typing.Optional[click.Parameter], ctx: typing.Optional[click.Context]):
-        match = self.language_re.match(value)
+        match = self.age_re.match(value)
         if not match:
             self.fail(f"{click.style(f'{value}', bold=True)} is not a valid age")
 

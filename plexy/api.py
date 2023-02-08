@@ -130,13 +130,13 @@ class Settings:
 class Criteria:
 
     def __init__(self,
-                 libraries: typing.List[str],
-                 titles: typing.List[Title],
-                 newer_than: typing.Optional[str],
-                 older_than: typing.Optional[str],
-                 skip_watching: bool):
-        self.libraries = libraries
-        self.titles = titles
+                 libraries: typing.Optional[typing.Iterable[str]] = None,
+                 titles: typing.Optional[typing.Iterable[Title]] = None,
+                 newer_than: typing.Optional[str] = None,
+                 older_than: typing.Optional[str] = None,
+                 skip_watching=False):
+        self.libraries = list(libraries or [])
+        self.titles = list(titles or [])
         self.newer_than = newer_than
         self.older_than = older_than
         self.skip_watching = skip_watching
@@ -264,6 +264,14 @@ class Video:
 
         return changes
 
+    def __eq__(self, other):
+        if isinstance(other, Video):
+            return self.video == other.video
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
     def __str__(self):
         return f'{self.title}'
 
@@ -319,11 +327,13 @@ class Stream:
 
     @property
     def codec(self):
-        return self.stream.codec
+        if self.stream.codec:
+            return AudioCodec(self.stream.codec)
 
     @property
     def format(self):
-        return self.subtitle_stream.format if self.subtitle_stream else None
+        if self.subtitle_stream and self.subtitle_stream.format:
+            return SubtitleCodec(self.subtitle_stream.format)
 
     @property
     def audio_stream(self):
@@ -514,16 +524,23 @@ class Change:
 class Plex:
 
     def __init__(self, settings: Settings):
-        self.plex = plexapi.server.PlexServer(baseurl=settings.url, token=settings.token)
-        logger.debug('Connected to %s', settings.url)
+        self.settings = settings
+        self._plex: typing.Optional[plexapi.server.PlexServer] = None
+
+    @property
+    def server(self):
+        if self._plex is None:
+            logger.debug('Connected to %s', self.settings.url)
+            self._plex = plexapi.server.PlexServer(baseurl=self.settings.url, token=self.settings.token)
+        return self._plex
 
     def __find_sections(self, criteria: Criteria):
         if not criteria.libraries:
-            return self.plex.library.sections()
+            return self.server.library.sections()
 
         sections: typing.List[plexapi.library.LibrarySection] = []
         for library in criteria.libraries:
-            sections.append(self.plex.library.section(library))
+            sections.append(self.server.library.section(library))
 
         return sections
 
