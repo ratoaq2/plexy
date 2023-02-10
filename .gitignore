@@ -132,4 +132,4 @@ dmypy.json
 .idea
 
 # local plexy config files
-plexy-*.yml
+plexy*.yml

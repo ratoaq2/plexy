@@ -290,7 +290,7 @@ class Stream:
         self.stream = stream
         self.language = language
         self.commentary = commentary
-        self.closed_caption = closed_caption or (self.subtitle_stream and self.subtitle_stream.codec == 'eia_608')
+        self.closed_caption = closed_caption or self.codec == SubtitleCodec.CC
         self.hearing_impaired = hearing_impaired
 
     @staticmethod
@@ -327,13 +327,13 @@ class Stream:
 
     @property
     def codec(self):
-        if self.stream.codec:
-            return AudioCodec(self.stream.codec)
+        audio_stream = self.audio_stream
+        if audio_stream and audio_stream.codec:
+            return AudioCodec(audio_stream.codec)
 
-    @property
-    def format(self):
-        if self.subtitle_stream and self.subtitle_stream.format:
-            return SubtitleCodec(self.subtitle_stream.format)
+        subtitle_stream = self.subtitle_stream
+        if subtitle_stream and subtitle_stream.codec:
+            return SubtitleCodec(subtitle_stream.codec)
 
     @property
     def audio_stream(self):
@@ -458,8 +458,8 @@ class VideoPart:
         language_cmp = VideoPart.__get_lang_cmp(preferences.language)
 
         streams = sorted([subtitle for subtitle in self.subtitle_streams if (
-                not preferences.subtitle_codecs or subtitle.format in preferences.subtitle_codecs)
-                      and subtitle.format not in preferences.excluded_subtitle_codecs],
+                not preferences.subtitle_codecs or subtitle.codec in preferences.subtitle_codecs)
+                      and subtitle.codec not in preferences.excluded_subtitle_codecs],
                       key=functools.cmp_to_key(language_cmp))
 
         return streams[0] if streams else self.selected_subtitle
