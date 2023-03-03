@@ -563,14 +563,14 @@ rebulk = ">=3.1.0,<4.0.0"
 
 [[package]]
 name = "types-appdirs"
-version = "1.4.3.1"
+version = "1.4.3.2"
 description = "Typing stubs for appdirs"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-appdirs-1.4.3.1.tar.gz", hash = "sha256:cf77d89a5cb86b1d40ea9b96f643fbe68ecd28c1739290e91612c44cd9bb92a1"},
-    {file = "types_appdirs-1.4.3.1-py3-none-any.whl", hash = "sha256:9cff9736bb4ea0baa2ce452244ccaae8932b852f7eb7a7afba3222c5ba90377a"},
+    {file = "types-appdirs-1.4.3.2.tar.gz", hash = "sha256:bf8caebdff6e574407859531391d87be4d185647814dad89b41372198a6e718b"},
+    {file = "types_appdirs-1.4.3.2-py3-none-any.whl", hash = "sha256:014b8c3c5ab55c54a917ea2d12991c93521ddfb18f6eb6c2ef03678a81ae3e45"},
 ]
 
 [[package]]
