@@ -315,13 +315,13 @@ files = [
 
 [[package]]
 name = "plexapi"
-version = "4.15.9"
+version = "4.15.13"
 description = "Python bindings for the Plex API."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "PlexAPI-4.15.9-py3-none-any.whl", hash = "sha256:d34725a749dbdca3de47bac8427a93fd1e35346d15aa1deee9be7f6618c1b9a9"},
-    {file = "PlexAPI-4.15.9.tar.gz", hash = "sha256:3820c7f82ecbcb3d90dbdd5a91c20ef01bd6eb5e4f9d9f42c056a6dcbd37e6e5"},
+    {file = "PlexAPI-4.15.13-py3-none-any.whl", hash = "sha256:4450cef488dc562a778e84226dd6ffdcb21ce23f62e5234357a9c56f076c4892"},
+    {file = "PlexAPI-4.15.13.tar.gz", hash = "sha256:81734409cd574581ae21fb3702b8bd14ef8d2f5cc30c2127cebc8250ad906d14"},
 ]
 
 [package.dependencies]
