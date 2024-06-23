@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 class AudioCodec(enum.Enum):
     DTS = 'dca'
     AAC = 'aac'
+    OPUS = 'opus'
     DOLBY_DIGITAL = 'ac3'
     DOLBY_DIGITAL_PLUS = 'eac3'
     DOLBY_DIGITAL_TRUEHD = 'truehd'
@@ -31,6 +32,7 @@ class AudioCodec(enum.Enum):
     MP3 = 'mp3'
     VORBIS = 'vorbis'
     PCM = 'pcm'
+    UNKNOWN = 'unknown'
 
 
 @enum.unique
@@ -42,6 +44,7 @@ class SubtitleCodec(enum.Enum):
     MOV = 'mov_text'
     CC = 'eia_608'
     DVB = 'dvb_subtitle'
+    UNKNOWN = 'unknown'
 
 
 @enum.unique
@@ -329,11 +332,17 @@ class Stream:
     def codec(self):
         audio_stream = self.audio_stream
         if audio_stream and audio_stream.codec:
-            return AudioCodec(audio_stream.codec)
+            try:
+                return AudioCodec(audio_stream.codec)
+            except ValueError:
+                return AudioCodec.UNKNOWN
 
         subtitle_stream = self.subtitle_stream
         if subtitle_stream and subtitle_stream.codec:
-            return SubtitleCodec(subtitle_stream.codec)
+            try:
+                return SubtitleCodec(subtitle_stream.codec)
+            except ValueError:
+                return SubtitleCodec.UNKNOWN
 
     @property
     def audio_stream(self):
