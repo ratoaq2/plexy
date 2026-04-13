@@ -440,13 +440,17 @@ class VideoPart:
         return streams[0] if streams else None
 
     def select_audio(self, selection: Stream):
-        self.part.setDefaultAudioStream(selection.audio_stream)
+        audio_stream = selection.audio_stream
+        if audio_stream is not None:
+            self.part.setSelectedAudioStream(audio_stream)
 
     def unselect_subtitle(self):
-        self.part.resetDefaultSubtitleStream()
+        self.part.resetSelectedSubtitleStream()
 
     def select_subtitle(self, selection: Stream):
-        self.part.setDefaultSubtitleStream(selection.subtitle_stream)
+        subtitle_stream = selection.subtitle_stream
+        if subtitle_stream is not None:
+            self.part.setSelectedSubtitleStream(subtitle_stream)
 
     def choose_audio_track(self, preferences: Preferences):
         if preferences.keep_selected_audio:
