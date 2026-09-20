@@ -1,37 +1,27 @@
-FROM python:3.13-slim as builder
+FROM python:3.13-slim AS builder
 
-ENV PYTHONFAULTHANDLER=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONHASHSEED=random \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100 \
-    POETRY_VERSION=1.8.3 \
-    POETRY_VIRTUALENVS_CREATE=0
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-RUN pip install "poetry==$POETRY_VERSION"
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
-COPY poetry.lock pyproject.toml README.md /app/
-RUN poetry install --no-interaction --no-ansi --only main
+COPY pyproject.toml uv.lock README.md /app/
+RUN uv sync --locked --no-install-project --no-dev
 COPY plexy/ /app/plexy/
-RUN poetry build --no-interaction --no-ansi
+RUN uv sync --locked --no-dev
 
 
 FROM python:3.13-slim
 
-ENV PYTHONFAULTHANDLER=1 \
+COPY --from=builder /app /app
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100
-
-COPY --from=builder /app/dist /usr/src/dist
-
-RUN pip install /usr/src/dist/plexy-*.tar.gz
+    PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /
 

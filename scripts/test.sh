@@ -2,7 +2,7 @@
 
 set -ex
 
-flake8
-mypy --check-untyped-defs plexy
-mypy --check-untyped-defs tests
+ruff check .
+ruff format --check .
+mypy plexy tests
 pytest plexy -vv tests
