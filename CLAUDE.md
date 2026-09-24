@@ -1,55 +1,62 @@
 # plexy
 
-CLI tool that sets Plex watching preferences (audio/subtitle track selection) via the Plex API.
+CLI tool that sets Plex watching preferences (audio and subtitle track selection) through the Plex API.
 
 ## Commands
 
-Package management is via [uv](https://docs.astral.sh/uv/), not pip/poetry.
+`uv` only (not poetry or pip).
 
-- Install deps: `uv sync --all-extras`
-- Run everything CI runs: `uv run bash scripts/test.sh` (ruff check, ruff format --check, mypy, pytest)
-- Lint: `uv run ruff check .`
-- Format: `uv run ruff format .`
-- Type-check: `uv run mypy plexy tests`
-- Test: `uv run pytest plexy tests -vv`
-- Run the CLI locally: `uv run plexy --url <PLEX_URL> --token <TOKEN> preferences ...`
-- Build: `uv build`
+```
+uv sync --all-extras
+uv run pytest -q --tb=short tests
+uv run ruff check .
+uv run ruff format .
+uv run mypy plexy tests
+uv run python scripts/check_knowledge.py
+bash scripts/test.sh
+```
 
-Pre-commit hooks (ruff + mypy) are configured in `.pre-commit-config.yaml`; run `uv run pre-commit install` once per clone.
+`scripts/test.sh` runs all the checks of CI. `docs/cli.md` tells how to run the CLI.
 
-## Code style
+## Code: lazy senior dev
 
-- Line length 120, enforced by Ruff (lint rules: `E, F, W, I, UP, B`; formatter is Ruff's black-compatible formatter).
-- Every function/method needs a full type annotation (params + return) — mypy runs with
-  `disallow_untyped_defs`, `disallow_incomplete_defs`, `check_untyped_defs`, `warn_return_any` enabled
-  (not full `--strict`). `plexy/api.py` uses `from __future__ import annotations` for forward references
-  between classes defined later in the file.
-- Third-party libraries without type stubs (`babelfish`, `plexapi`, `trakit`, `mockito`) are
-  `ignore_missing_imports`d in `[tool.mypy]`; when a call into one of them returns `Any` but the real
-  runtime type is known, use `typing.cast(...)` rather than loosening the function's declared return type.
-- No docstrings unless behavior is genuinely non-obvious — matches existing code.
+Lazy means less code, not less care. First understand the problem: read the task and trace the real flow.
+Then stop at the first step that works:
 
-## Project map
+1. Is the change necessary? (YAGNI)
+2. Does plexy already have it? Use it again.
+3. Does the standard library or an installed dependency do it? Use it.
+4. Only then, write the minimum code.
 
-- `plexy/api.py` — core domain logic: `Plex` (server connection + search), `Criteria` (search
-  filters), `Video`/`VideoPart` (a matched movie/episode and its media parts), `Stream` (an audio or
-  subtitle stream, with guessed language/commentary/hearing-impaired metadata via `trakit`),
-  `Preferences` (user's dubbed/original + codec preferences), `Change` (a record of what got changed
-  on a given part).
-- `plexy/cli.py` — Click CLI: the `plexy` group and `preferences` command, plus custom
-  `click.ParamType`s (`LANGUAGE`, `AGE`, `TITLE`, codec enums) and config-file loading
-  (`config.{json,yml,yaml}` in the user config dir, then `plexy.{json,yml,yaml}` in the cwd, then
-  `--config` overrides both).
-- `plexy/utils.py` — helpers for picking a stream's display title and guessing its language(s)
-  from Plex's `languageCode`/`language`/`languageTag` fields.
-- `plexy/exceptions.py` — `Error` base class; `InvalidTitle` is the only subclass (raised by
-  `Title.from_string`).
+- Bug fix: fix the root cause, not the symptom. Check every caller of the function that you change.
+- No abstraction, dependency, or option that nobody asked for. Delete before you add.
+- Not lazy about: changes to the user's Plex server, errors that lose data, tests, and what the user asked for.
+- mypy: annotate every function. Narrow `X | None` at the point of use.
+- Use quiet flags (`-q --tb=short`). Never send full logs into the context.
 
-## Domain terms
+Adapted from [ponytail](https://github.com/DietrichGebert/ponytail) (MIT).
 
-- **Watching preference**: `dubbed` (prefer an audio track in the desired language) vs. `original`
-  (prefer the original/default audio track, plus a subtitle track in the desired language if needed).
-- **Title filter**: parsed by `Title.from_string` into name/year/season/episode, e.g.
-  `"Game of Thrones (2011) s03e09"`.
-- Stream selection priority: commentary tracks and closed-caption/SDH subtitle tracks rank lower
-  than "normal" tracks in the same language (see `VideoPart._VideoPart__get_lang_cmp`).
+## Git
+
+- One-line Conventional Commits subject. Add `Closes #<n>` for a fix. No attribution trailers.
+- Bug fix: commit the failing test first, then the fix.
+- Use the `ship` skill to commit, push, or open a PR. It follows `CONTRIBUTING.md`.
+
+## Writing
+
+All text follows ASD-STE100 Simplified Technical English. Most readers are not native English speakers.
+
+- One idea in each sentence. Short sentences.
+- Active voice and simple tenses.
+- Common words. Use one word for one thing.
+- No semicolons, no phrasal verbs, no idioms, no filler, no emoji.
+- Do not change code, commands, logs, or quotes.
+
+Use the `writing-style` skill for docs, PR, issue, and release text.
+
+## Knowledge
+
+- The rules in `.claude/rules/` load for the paths that they name. They link to `docs/`.
+- When a change makes a statement in a knowledge file wrong, fix it in the same commit. `ship` checks it.
+- Put project facts in the repo, not in personal memory. `.claude/rules/knowledge.md` tells where.
+- Local work lives in `plans/<issue>-<slug>/` (gitignored). The lifecycle is in `docs/workflow.md`.

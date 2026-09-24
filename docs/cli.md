@@ -1,6 +1,10 @@
 # CLI
 
-The CLI is in `plexy/cli.py`. It uses Click.
+The CLI is in `plexy/cli.py`. It uses Click. To run it from the repo:
+
+```
+uv run plexy --url <PLEX_URL> --token <TOKEN> preferences ...
+```
 
 ## Config files
 
