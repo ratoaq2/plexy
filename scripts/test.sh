@@ -2,7 +2,7 @@
 
 set -ex
 
-ruff check .
-ruff format --check .
-mypy plexy tests
-pytest plexy -vv tests
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy plexy tests
+uv run pytest plexy -vv tests
