@@ -38,7 +38,8 @@ Pre-commit hooks (ruff + mypy) are configured in `.pre-commit-config.yaml`; run 
   on a given part).
 - `plexy/cli.py` — Click CLI: the `plexy` group and `preferences` command, plus custom
   `click.ParamType`s (`LANGUAGE`, `AGE`, `TITLE`, codec enums) and config-file loading
-  (`--config`, or `config.{json,yml,yaml}` in the platform config dir / cwd).
+  (`config.{json,yml,yaml}` in the user config dir, then `plexy.{json,yml,yaml}` in the cwd, then
+  `--config` overrides both).
 - `plexy/utils.py` — helpers for picking a stream's display title and guessing its language(s)
   from Plex's `languageCode`/`language`/`languageTag` fields.
 - `plexy/exceptions.py` — `Error` base class; `InvalidTitle` is the only subclass (raised by
