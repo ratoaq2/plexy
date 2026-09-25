@@ -130,3 +130,9 @@ dmypy.json
 
 # local plexy config files
 plexy*.yml
+
+# local work and Claude Code files
+plans/
+.claude/settings.local.json
+.claude/worktrees/
+.claude/scheduled_tasks.lock
