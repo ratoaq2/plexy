@@ -19,17 +19,23 @@ import typing
 import xml.etree.ElementTree as ET
 
 import babelfish
+import plexapi.media
+import plexapi.server
 import requests
 import trakit
+
+from plexy import Criteria, Plex, Settings, Title
+from plexy.api import Stream
+from plexy.cli import read_config
 
 FIXTURES = pathlib.Path(__file__).resolve().parent.parent / "tests" / "fixtures"
 SECTION_PLACEHOLDER = "SECTION"
 
-FLAG_WORDS = """
+EXTRA_WORDS = """
 sdh cc forced commentary commentaries director directors hearing impaired closed caption captions descriptive
 description audio dubbed dub original external default signs songs full subtitles subtitle subs text
 dts hd ma x truehd atmos ac3 eac3 e aac flac opus mp2 mp3 vorbis pcm dolby digital plus stereo mono surround
-pgs srt ass ssa vobsub mov dvb eia wvtt webvtt smi lossless lossy
+pgs srt ass ssa vobsub mov dvb eia wvtt webvtt smi lossless lossy america
 """.split()
 
 VIDEO_ATTRS = {
@@ -51,6 +57,11 @@ SECTION_ATTRS = {"key", "type", "title", "agent", "scanner", "language", "uuid",
                  "refreshing", "hidden", "content", "directory"}  # fmt: skip
 ROOT_ATTRS = {"version", "platform", "apiVersion"}
 SECTION_NAMES = {"movie": "Movies", "show": "Shows"}
+STREAM_CLASSES = {
+    "1": plexapi.media.VideoStream,
+    "2": plexapi.media.AudioStream,
+    "3": plexapi.media.SubtitleStream,
+}
 
 word_re = re.compile(r"[^\W_]+(?:'[^\W_]+)?")
 
@@ -62,12 +73,34 @@ class ReadOnlySession(requests.Session):
         return super().request(typing.cast(str, method), url, *args, **kwargs)
 
 
+def is_known(word: str) -> bool:
+    """True for a word that trakit or babelfish knows, a word with a digit, or one letter."""
+    lower = word.lower()
+    if len(word) == 1 or lower in known_words() or any(c.isdigit() for c in word):
+        return True
+    if word.isascii():
+        return False
+    # Scripts with no spaces (for example Chinese) join known words: 简体中文 is 简体 + 中文.
+    ends = [True] + [False] * len(lower)
+    for i in range(1, len(lower) + 1):
+        ends[i] = any(ends[j] and lower[j:i] in known_words() for j in range(i))
+    return ends[-1]
+
+
+def stream_result(stream: ET.Element) -> tuple[str, bool, bool, bool]:
+    """The language and the flags that plexy finds for a stream."""
+    cls = STREAM_CLASSES.get(stream.get("streamType", ""), plexapi.media.MediaPartStream)
+    result = Stream.from_stream(cls(None, stream, initpath="/library/metadata"))
+    return str(result.language), result.commentary, result.closed_caption, result.hearing_impaired
+
+
 @functools.cache
 def known_words() -> frozenset[str]:
-    words: set[str] = set(FLAG_WORDS)
+    words: set[str] = set(EXTRA_WORDS)
     config = json.loads((pathlib.Path(trakit.__file__).parent / "data" / "config.json").read_bytes())
     for group in ("countries", "implicit-languages", "languages", "regions", "scripts"):
         for name in config[group]:
+            words.add(name.lower())
             words.update(w.lower() for w in word_re.findall(name))
     for code in babelfish.LANGUAGE_MATRIX:
         words.update(w.lower() for w in word_re.findall(code.name))
@@ -104,7 +137,7 @@ class Renamer:
     def text(self, value: str) -> str:
         def replace(match: re.Match[str]) -> str:
             word = match.group(0)
-            if word.lower() in known_words() or any(c.isdigit() for c in word):
+            if is_known(word):
                 return word
             if word not in self.words:
                 self.words[word] = f"word{len(self.words) + 1}"
@@ -188,10 +221,14 @@ def sanitize_stream(stream: ET.Element, renamer: Renamer) -> None:
     stream.set("id", stream_id)
     if "key" in stream.attrib:
         stream.set("key", f"/library/streams/{stream_id}")
+    before = stream_result(stream)
     for name in STREAM_TEXT_ATTRS:
         value = stream.get(name)
         if value:
             stream.set(name, renamer.text(value))
+    after = stream_result(stream)
+    if after != before:
+        renamer.warnings.append(f"Stream {stream_id}: plexy finds {after} after the sanitize, and {before} before.")
 
 
 def sanitize_sections(container: ET.Element, renamer: Renamer) -> ET.Element:
@@ -255,10 +292,6 @@ def write(path: pathlib.Path, elem: ET.Element) -> None:
 
 
 def connect(configs: list[str]) -> typing.Any:
-    import plexapi.server
-
-    from plexy.cli import read_config
-
     config: dict[str, typing.Any] = {}
     for name in configs:
         config.update(read_config(name))
@@ -266,8 +299,6 @@ def connect(configs: list[str]) -> typing.Any:
 
 
 def find_items(server: typing.Any, titles: list[str], libraries: list[str], rating_keys: list[int]) -> list[typing.Any]:
-    from plexy import Criteria, Plex, Settings, Title
-
     items = [server.fetchItem(key) for key in rating_keys]
     if titles:
         plex = Plex(Settings(url=server._baseurl, token=""))

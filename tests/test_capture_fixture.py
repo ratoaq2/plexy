@@ -219,3 +219,40 @@ def test_read_only_session_blocks_writes(cf: ModuleType) -> None:
     # when
     with pytest.raises(RuntimeError, match="GET requests only"):
         session.put("http://localhost:1/library/parts/1")
+
+
+@pytest.mark.parametrize(
+    ("word", "expected"),
+    [
+        ("English", True),
+        ("SDH", True),
+        ("简体中文", True),
+        ("繁體中文", True),
+        ("America", True),
+        ("H", True),
+        ("x264", True),
+        ("Grupo", False),
+        ("Fulano", False),
+    ],
+)
+def test_is_known(cf: ModuleType, word: str, expected: bool) -> None:
+    # when
+    actual = cf.is_known(word)
+
+    # then
+    assert actual == expected
+
+
+def test_sanitize_item_warns_when_plexy_result_changes(cf: ModuleType, monkeypatch: pytest.MonkeyPatch) -> None:
+    # given
+    renamer = cf.Renamer()
+    monkeypatch.setattr(cf, "is_known", lambda word: word != "SDH" and word not in ("Grupo", "Fulano"))
+
+    # when
+    cf.sanitize_item(ET.fromstring(MOVIE), renamer, {"777": "movie"})
+
+    # then
+    assert [w for w in renamer.warnings if w.startswith("Stream 3:")] == [
+        "Stream 3: plexy finds ('pt-BR', False, False, False) after the sanitize, "
+        "and ('pt-BR', False, False, True) before."
+    ]
