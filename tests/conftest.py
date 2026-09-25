@@ -1,3 +1,4 @@
+import os
 import typing
 import xml.etree.ElementTree as ET
 
@@ -24,3 +25,13 @@ def fake_plex(monkeypatch: pytest.MonkeyPatch) -> typing.Callable[..., FakePlex]
         return fake
 
     return install
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Skip the live tests when PLEXY_TEST_CONFIG is not set. See docs/testing.md."""
+    if os.environ.get("PLEXY_TEST_CONFIG"):
+        return
+    skip = pytest.mark.skip(reason="PLEXY_TEST_CONFIG is not set")
+    for item in items:
+        if "live" in item.keywords:
+            item.add_marker(skip)

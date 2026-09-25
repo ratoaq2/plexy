@@ -1,7 +1,7 @@
 # Testing
 
-Tests never connect to a real Plex server. They run the real plexy and plexapi code on Plex XML that a fake
-server gives.
+Tests do not connect to a real Plex server, except the live tests. They run the real plexy and plexapi code
+on Plex XML that a fake server gives.
 
 ## Fake server
 
@@ -88,6 +88,37 @@ tool compares the language and flags that plexy finds for each stream before and
 It prints a warning when they are different.
 
 Before you commit a fixture, read its diff. Make sure that it has no private data.
+
+## Live tests
+
+`tests/test_live.py` reads from a real Plex server. The tests have the `live` marker. They run only when
+`PLEXY_TEST_CONFIG` is set. `scripts/test.sh` and CI skip them.
+
+```
+PLEXY_TEST_CONFIG=plexy.yml,plexy-test.yml uv run pytest -q --tb=short -m live tests
+```
+
+- `PLEXY_TEST_CONFIG` is a comma-separated list of config files (see `docs/cli.md`). A later file overrides
+  an earlier file. They must give `url`, `token`, and `test_items`.
+- The tests send GET requests only. The session of the capture tool blocks all other requests.
+- The contract test runs the plexy search on the real server. Each request must have a route in `FakePlex`.
+  When it fails, plexy or plexapi sends a new request. Add the route to `tests/fakeplex.py`.
+- The filter tests check that Plex gives the expected item for each filter that plexy sends. The fake does
+  not apply filters, so only these tests check what a filter means.
+
+`test_items` names items of your library. Keep it in a local config file, for example `plexy-test.yml`.
+`.gitignore` ignores `plexy*.yml`. Media titles must never go into the repo.
+
+```yaml
+test_items:
+  movie: Some Movie (2017)
+  show: Some Show (2024)
+  episode: Some Show s01e02
+```
+
+- `movie`: a movie, with its year.
+- `show`: a show, with its year.
+- `episode`: an episode of a show, with no year.
 
 ## Regression test for a bug on a real library
 

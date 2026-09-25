@@ -29,6 +29,18 @@ class Request(typing.NamedTuple):
     params: dict[str, str]
 
 
+def has_route(request: Request) -> bool:
+    """True when FakePlex answers this GET. The live contract test uses it."""
+    if request.path in ("/", "/library", "/library/sections") or metadata_re.match(request.path):
+        return True
+    match = section_re.match(request.path)
+    if not match:
+        return False
+    return request.params.get("includeMeta") == "1" or (
+        match.group("route") == "all" and request.params.get("type") in SEARCH_TYPES
+    )
+
+
 class FakePlex(requests.Session):
     def __init__(self, sections: ET.Element, items: list[ET.Element]) -> None:
         super().__init__()
