@@ -24,6 +24,12 @@ def test_example(fake_plex: FakePlexFactory) -> None:
   results would repeat. Give the result of each search with `fake.answer({"title": "Movie 1"}, [1])`.
 - A request that the fake does not know fails the test. This shows a new request from plexy or plexapi.
 
+## CLI tests
+
+The CLI reads config files from the current folder and the user config folder (see `docs/cli.md`). The
+`invoke` fixture in `tests/test_cli.py` runs the CLI in an empty temporary folder, with an empty user config
+folder. Then a local `plexy.yml` does not change the result.
+
 ## Fixtures
 
 `tests/fixtures/` has:
@@ -43,7 +49,8 @@ elem = video(part(audio("ja", 1, selected=True), audio("en", 2), subtitle("en", 
 
 - `media_part(elem)` gives a plexapi `MediaPart` with no server. `tests/test_rank.py` uses it with
   `VideoPart.choose_audio_track` and `VideoPart.choose_subtitle_track`.
-- `fake_plex(items=[elem])` puts the video on the fake server. Use it when the test checks `fake.puts`.
+- `fake_plex(items=[elem])` puts the video on the fake server. It copies the video, so a PUT does not
+  change `elem`. Use it when the test checks `fake.puts`.
 - The stream ID is the stream index + 1.
 
 ## Capture tool

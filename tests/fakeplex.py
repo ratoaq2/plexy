@@ -60,7 +60,7 @@ class FakePlex(requests.Session):
                 title = {"movie": "Movies", "show": "Shows"}[section_type]
                 ET.SubElement(sections, "Directory", key=section_id, type=section_type, title=title, filters="1")
             container = ET.Element("MediaContainer", size="1", librarySectionID=section_id)
-            container.append(video)
+            container.append(copy.deepcopy(video))
             items.append(container)
         sections.set("size", str(len(sections)))
         return cls(sections, items)
