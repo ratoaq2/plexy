@@ -1,29 +1,14 @@
 import typing
 
-import babelfish
 import pytest
 
 from plexy import Criteria, Plex, Preferences, Settings, Title, WatchingPreference
+from tests.builders import audio, part, preferences, video
+from tests.builders import subtitle as subtitle_stream
 from tests.conftest import URL
 from tests.fakeplex import FakePlex, Request
 
 FakePlexFactory = typing.Callable[..., FakePlex]
-
-
-def preferences(watching_preference: WatchingPreference, language: str, **options: typing.Any) -> Preferences:
-    values: dict[str, typing.Any] = {
-        "audio_codecs": set(),
-        "excluded_audio_codecs": set(),
-        "subtitle_codecs": set(),
-        "excluded_subtitle_codecs": set(),
-        "keep_selected_audio": False,
-        "keep_selected_subtitle": False,
-        "force_subtitles": False,
-    }
-    values.update(options)
-    return Preferences(
-        watching_preference=watching_preference, language=babelfish.Language.fromietf(language), **values
-    )
 
 
 def run(criteria: Criteria, prefs: Preferences) -> int:
@@ -141,3 +126,23 @@ def test_unknown_request_fails(fake_plex: FakePlexFactory) -> None:
     # when
     with pytest.raises(AssertionError, match="no route for GET /library/onDeck"):
         fake.get(f"{URL}/library/onDeck")
+
+
+@pytest.mark.parametrize(
+    ("options", "expected"),
+    [
+        pytest.param({}, [subtitle(1, 0)], id="no subtitle"),
+        pytest.param({"force_subtitles": True}, [subtitle(1, 4)], id="force subtitles"),
+        pytest.param({"keep_selected_subtitle": True}, [], id="keep selected subtitle"),
+    ],
+)
+def test_subtitle_options(fake_plex: FakePlexFactory, options: dict[str, typing.Any], expected: list[Request]) -> None:
+    # given
+    streams = [audio("en", 1, selected=True), subtitle_stream("pt", 2, selected=True), subtitle_stream("en", 3)]
+    fake = fake_plex(items=[video(part(*streams))])
+
+    # when
+    run(Criteria(), preferences(WatchingPreference.DUBBED, "en", **options))
+
+    # then
+    assert fake.puts == expected

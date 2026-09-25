@@ -32,6 +32,20 @@ def test_example(fake_plex: FakePlexFactory) -> None:
 - `<scenario>/sections.xml` and `<scenario>/metadata/<ratingKey>.xml`: a small library. Put only the items
   that the tests of the scenario need.
 
+## Builder
+
+`tests/builders.py` makes small Plex XML in the test: `video`, `part`, `audio`, `subtitle`, and
+`video_stream`. Use it for a rule of the stream selection. Use a fixture for a case from a real library.
+
+```python
+elem = video(part(audio("ja", 1, selected=True), audio("en", 2), subtitle("en", 3)))
+```
+
+- `media_part(elem)` gives a plexapi `MediaPart` with no server. `tests/test_rank.py` uses it with
+  `VideoPart.choose_audio_track` and `VideoPart.choose_subtitle_track`.
+- `fake_plex(items=[elem])` puts the video on the fake server. Use it when the test checks `fake.puts`.
+- The stream ID is the stream index + 1.
+
 ## Capture tool
 
 `scripts/capture_fixture.py` reads items from a real Plex server and writes them as a scenario. It sends GET
