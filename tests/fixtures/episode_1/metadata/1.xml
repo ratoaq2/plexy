@@ -1,0 +1,103 @@
+<?xml version='1.0' encoding='utf-8'?>
+<MediaContainer size="1" allowSync="1" identifier="com.plexapp.plugins.library" librarySectionID="1" librarySectionTitle="Shows">
+  <Video ratingKey="1" key="/library/metadata/1" parentRatingKey="3" grandparentRatingKey="2" type="episode" title="Episode 1" grandparentKey="/library/metadata/2" parentKey="/library/metadata/3" librarySectionTitle="Shows" librarySectionID="1" librarySectionKey="/library/sections/1" grandparentTitle="Show 1" parentTitle="Season 2" index="4" parentIndex="2" year="2026">
+    <Media id="1" audioChannels="6" audioCodec="eac3" videoCodec="h264" videoResolution="1080" container="mkv">
+      <Part id="1" key="/library/parts/1/0/file.mkv" file="/media/1.mkv" container="mkv">
+        <Stream id="1" streamType="1" default="1" codec="h264" index="0" language="English" languageTag="en" languageCode="eng" profile="high" displayTitle="1080p" extendedDisplayTitle="1080p (H.264)">
+</Stream>
+        <Stream id="2" streamType="2" selected="1" default="1" codec="eac3" index="1" channels="6" language="English" languageTag="en" languageCode="eng" audioChannelLayout="5.1(side)" profile="dolby digital plus + dolby atmos" displayTitle="English (EAC3 5.1 + Atmos)" extendedDisplayTitle="English (EAC3 5.1 + Atmos)">
+</Stream>
+        <Stream id="3" streamType="3" codec="srt" index="2" language="English" languageTag="en" languageCode="eng" title="English" displayTitle="English" extendedDisplayTitle="English (SRT)">
+</Stream>
+        <Stream id="4" streamType="3" default="1" forced="1" codec="srt" index="3" language="English" languageTag="en" languageCode="eng" title="English [Forced]" displayTitle="English Forced" extendedDisplayTitle="English [Forced] (SRT)">
+</Stream>
+        <Stream id="5" streamType="3" codec="srt" index="4" language="English" languageTag="en" languageCode="eng" title="English [SDH]" displayTitle="English" extendedDisplayTitle="English [SDH] (SRT)">
+</Stream>
+        <Stream id="6" streamType="3" codec="srt" index="5" language="Arabic" languageTag="ar" languageCode="ara" title="العربية" displayTitle="Arabic" extendedDisplayTitle="العربية (SRT)">
+</Stream>
+        <Stream id="7" streamType="3" selected="1" codec="srt" index="6" language="Portuguese" languageTag="pt-BR" languageCode="por" title="Português" displayTitle="Portuguese" extendedDisplayTitle="Português (SRT)">
+</Stream>
+        <Stream id="8" streamType="3" codec="srt" index="7" language="Bulgarian" languageTag="bg" languageCode="bul" title="Български" displayTitle="Bulgarian" extendedDisplayTitle="Български (Bulgarian SRT)">
+</Stream>
+        <Stream id="9" streamType="3" codec="srt" index="8" language="French (Canada)" languageTag="fr-CA" languageCode="fra" title="Français canadien" displayTitle="French (Canada)" extendedDisplayTitle="Français canadien (French (Canada) SRT)">
+</Stream>
+        <Stream id="10" streamType="3" codec="srt" index="9" language="Cantonese" languageTag="yue-Hant" languageCode="yue" title="word1" displayTitle="Cantonese" extendedDisplayTitle="word1 (SRT)">
+</Stream>
+        <Stream id="11" streamType="3" codec="srt" index="10" language="Czech" languageTag="cs" languageCode="ces" title="Čeština" displayTitle="Czech" extendedDisplayTitle="Čeština (SRT)">
+</Stream>
+        <Stream id="12" streamType="3" codec="srt" index="11" language="Danish" languageTag="da" languageCode="dan" title="Dansk" displayTitle="Danish" extendedDisplayTitle="Dansk (SRT)">
+</Stream>
+        <Stream id="13" streamType="3" codec="srt" index="12" language="Dutch" languageTag="nl" languageCode="nld" title="Nederlands" displayTitle="Dutch" extendedDisplayTitle="Nederlands (SRT)">
+</Stream>
+        <Stream id="14" streamType="3" codec="srt" index="13" language="Estonian" languageTag="et" languageCode="est" title="Eesti" displayTitle="Estonian" extendedDisplayTitle="Eesti (SRT)">
+</Stream>
+        <Stream id="15" streamType="3" codec="srt" index="14" language="Spanish" languageTag="es-ES" languageCode="spa" title="español de España" displayTitle="Spanish" extendedDisplayTitle="español de España (SRT)">
+</Stream>
+        <Stream id="16" streamType="3" codec="srt" index="15" language="Finnish" languageTag="fi" languageCode="fin" title="Suomi" displayTitle="Finnish" extendedDisplayTitle="Suomi (SRT)">
+</Stream>
+        <Stream id="17" streamType="3" codec="srt" index="16" language="French" languageTag="fr-FR" languageCode="fra" title="Français" displayTitle="French" extendedDisplayTitle="Français (SRT)">
+</Stream>
+        <Stream id="18" streamType="3" codec="srt" index="17" language="German" languageTag="de" languageCode="deu" title="Deutsch" displayTitle="German" extendedDisplayTitle="Deutsch (SRT)">
+</Stream>
+        <Stream id="19" streamType="3" codec="srt" index="18" language="Greek" languageTag="el" languageCode="ell" title="Ελληνικά" displayTitle="Greek" extendedDisplayTitle="Ελληνικά (SRT)">
+</Stream>
+        <Stream id="20" streamType="3" codec="srt" index="19" language="Hebrew" languageTag="he" languageCode="heb" title="עברית" displayTitle="Hebrew" extendedDisplayTitle="עברית (SRT)">
+</Stream>
+        <Stream id="21" streamType="3" codec="srt" index="20" language="Hindi" languageTag="hi" languageCode="hin" title="हिन्दी" displayTitle="Hindi" extendedDisplayTitle="हिन्दी (SRT)">
+</Stream>
+        <Stream id="22" streamType="3" codec="srt" index="21" language="Hungarian" languageTag="hu" languageCode="hun" title="Magyar" displayTitle="Hungarian" extendedDisplayTitle="Magyar (SRT)">
+</Stream>
+        <Stream id="23" streamType="3" codec="srt" index="22" language="Indonesian" languageTag="id" languageCode="ind" title="Indonesia" displayTitle="Indonesian" extendedDisplayTitle="Indonesia (SRT)">
+</Stream>
+        <Stream id="24" streamType="3" codec="srt" index="23" language="Italian" languageTag="it" languageCode="ita" title="Italiano" displayTitle="Italian" extendedDisplayTitle="Italiano (SRT)">
+</Stream>
+        <Stream id="25" streamType="3" codec="srt" index="24" language="Japanese" languageTag="ja" languageCode="jpn" title="日本語" displayTitle="Japanese" extendedDisplayTitle="日本語 (SRT)">
+</Stream>
+        <Stream id="26" streamType="3" codec="srt" index="25" language="Korean" languageTag="ko" languageCode="kor" title="한국어" displayTitle="Korean" extendedDisplayTitle="한국어 (SRT)">
+</Stream>
+        <Stream id="27" streamType="3" codec="srt" index="26" language="Spanish (Latin America)" languageTag="es-419" languageCode="spa" title="Español latinoamericano" displayTitle="Spanish (Latin America)" extendedDisplayTitle="Español latinoamericano (Spanish (Latin America) SRT)">
+</Stream>
+        <Stream id="28" streamType="3" codec="srt" index="27" language="Latvian" languageTag="lv" languageCode="lav" title="Latviešu" displayTitle="Latvian" extendedDisplayTitle="Latviešu (SRT)">
+</Stream>
+        <Stream id="29" streamType="3" codec="srt" index="28" language="Lithuanian" languageTag="lt" languageCode="lit" title="Lietuvių" displayTitle="Lithuanian" extendedDisplayTitle="Lietuvių (SRT)">
+</Stream>
+        <Stream id="30" streamType="3" codec="srt" index="29" language="Malay" languageTag="ms" languageCode="msa" title="Melayu" displayTitle="Malay" extendedDisplayTitle="Melayu (SRT)">
+</Stream>
+        <Stream id="31" streamType="3" codec="srt" index="30" language="Norwegian" languageTag="no" languageCode="nor" title="Norsk bokmål" displayTitle="Norwegian" extendedDisplayTitle="Norsk bokmål (SRT)">
+</Stream>
+        <Stream id="32" streamType="3" codec="srt" index="31" language="Polish" languageTag="pl" languageCode="pol" title="Polski" displayTitle="Polish" extendedDisplayTitle="Polski (SRT)">
+</Stream>
+        <Stream id="33" streamType="3" codec="srt" index="32" language="Portuguese" languageTag="pt" languageCode="por" title="Português" displayTitle="Portuguese" extendedDisplayTitle="Português (SRT)">
+</Stream>
+        <Stream id="34" streamType="3" codec="srt" index="33" language="Romanian" languageTag="ro" languageCode="ron" title="Română" displayTitle="Romanian" extendedDisplayTitle="Română (SRT)">
+</Stream>
+        <Stream id="35" streamType="3" codec="srt" index="34" language="Russian" languageTag="ru" languageCode="rus" title="Русский" displayTitle="Russian" extendedDisplayTitle="Русский (SRT)">
+</Stream>
+        <Stream id="36" streamType="3" codec="srt" index="35" language="Chinese" languageTag="zh-Hans" languageCode="zho" title="简体中文" displayTitle="Chinese" extendedDisplayTitle="简体中文 (Chinese SRT)">
+</Stream>
+        <Stream id="37" streamType="3" codec="srt" index="36" language="Slovak" languageTag="sk" languageCode="slk" title="Slovenčina" displayTitle="Slovak" extendedDisplayTitle="Slovenčina (SRT)">
+</Stream>
+        <Stream id="38" streamType="3" codec="srt" index="37" language="Slovenian" languageTag="sl" languageCode="slv" title="Slovenščina" displayTitle="Slovenian" extendedDisplayTitle="Slovenščina (SRT)">
+</Stream>
+        <Stream id="39" streamType="3" codec="srt" index="38" language="Swedish" languageTag="sv" languageCode="swe" title="Svenska" displayTitle="Swedish" extendedDisplayTitle="Svenska (SRT)">
+</Stream>
+        <Stream id="40" streamType="3" codec="srt" index="39" language="Tamil" languageTag="ta" languageCode="tam" title="தமிழ்" displayTitle="Tamil" extendedDisplayTitle="தமிழ் (SRT)">
+</Stream>
+        <Stream id="41" streamType="3" codec="srt" index="40" language="Telugu" languageTag="te" languageCode="tel" title="తెలుగు" displayTitle="Telugu" extendedDisplayTitle="తెలుగు (SRT)">
+</Stream>
+        <Stream id="42" streamType="3" codec="srt" index="41" language="Thai" languageTag="th" languageCode="tha" title="ไทย" displayTitle="Thai" extendedDisplayTitle="ไทย (SRT)">
+</Stream>
+        <Stream id="43" streamType="3" codec="srt" index="42" language="Chinese (Taiwan)" languageTag="zh-Hant" languageCode="zho" title="繁體中文" displayTitle="Chinese (Taiwan)" extendedDisplayTitle="繁體中文 (Chinese (Taiwan) SRT)">
+</Stream>
+        <Stream id="44" streamType="3" codec="srt" index="43" language="Turkish" languageTag="tr" languageCode="tur" title="Türkçe" displayTitle="Turkish" extendedDisplayTitle="Türkçe (SRT)">
+</Stream>
+        <Stream id="45" streamType="3" codec="srt" index="44" language="Ukrainian" languageTag="uk" languageCode="ukr" title="Українська" displayTitle="Ukrainian" extendedDisplayTitle="Українська (SRT)">
+</Stream>
+        <Stream id="46" streamType="3" codec="srt" index="45" language="Vietnamese" languageTag="vi" languageCode="vie" title="Tiếng Việt" displayTitle="Vietnamese" extendedDisplayTitle="Tiếng Việt (Vietnamese SRT)">
+</Stream>
+        <Stream id="47" key="/library/streams/47" streamType="3" codec="srt" language="Portuguese" languageTag="pt-BR" languageCode="por" format="srt" displayTitle="Portuguese" extendedDisplayTitle="Portuguese (SRT External)">
+</Stream>
+      </Part>
+    </Media>
+  </Video>
+</MediaContainer>
