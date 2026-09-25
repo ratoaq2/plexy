@@ -17,6 +17,8 @@ Read `docs/workflow.md` first. It defines the work folder, the names, and the si
    - Put scripts and sample files in `plans/<n>-<slug>/repro/`.
    - Try first with the existing test helpers and fixtures. A test that does not need external files or
      services is better.
+   - For a bug on a real library, capture the item as a fixture with `scripts/capture_fixture.py`. See
+     `docs/testing.md`, "Regression test for a bug on a real library".
    - If you need a real input file, keep it in `repro/`. Never commit private or large files.
 5. Find the root cause. Read the path-scoped rule and the linked doc of each module that you touch.
    Check each claim in the code. Do not guess.

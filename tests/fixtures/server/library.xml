@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<MediaContainer size="3" allowSync="0" content="" identifier="com.plexapp.plugins.library" title1="Plex Library" title2="">
+  <Directory key="sections" title="Library Sections" />
+  <Directory key="recentlyAdded" title="Recently Added Content" />
+  <Directory key="onDeck" title="On Deck Content" />
+</MediaContainer>

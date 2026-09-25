@@ -27,6 +27,6 @@ The "keep selected" options keep the current audio or subtitle selection.
 2. A stream with the same base language (`alpha3`). Then the same script, or the same country.
 3. For two streams in the same language: a normal stream before a commentary stream, a closed-caption
    stream, or a hearing-impaired (SDH) stream.
-4. The lower stream index.
+4. The lower stream index. Two streams with the same language and the same flags keep the Plex order.
 
-When you change this order, add a test for the new case.
+When you change this order, add a test for the new case in `tests/test_rank.py`.

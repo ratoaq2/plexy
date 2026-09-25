@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<MediaContainer size="1" allowSync="0" title1="Plex Library">
+  <Directory allowSync="1" filters="1" refreshing="0" key="1" type="show" title="Shows" agent="tv.plex.agents.series" scanner="Plex TV Series" language="en-US" uuid="00000000-0000-0000-0000-000000000001" content="1" directory="1" hidden="0">
+</Directory>
+</MediaContainer>
