@@ -14,3 +14,5 @@ These files define the commands and checks. When you change one, make sure that 
 same checks as CI. `.python-version` is the newest version of the CI matrix.
 
 The mypy overrides in `pyproject.toml` list the libraries without stubs. `docs/typing.md` explains them.
+
+`scripts/capture_fixture.py` writes test fixtures and removes private data. `docs/testing.md` explains it.
