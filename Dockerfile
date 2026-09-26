@@ -8,9 +8,9 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /app
 COPY pyproject.toml uv.lock README.md /app/
-RUN uv sync --locked --no-install-project --no-dev
+RUN uv sync --locked --no-install-project --no-dev --extra yaml
 COPY plexy/ /app/plexy/
-RUN uv sync --locked --no-dev
+RUN uv sync --locked --no-dev --extra yaml
 
 
 FROM python:3.13-slim

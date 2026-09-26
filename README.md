@@ -213,7 +213,7 @@ requests only for new titles.
 
 ## Use Docker
 
-The Docker image does not read YAML files. Use a JSON configuration file, for example `plexy.json`:
+The Docker image reads JSON and YAML configuration files. For example, `plexy.json`:
 
 ```json
 {
