@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## 0.2.1
 
 - The Docker image now reads YAML configuration files.
