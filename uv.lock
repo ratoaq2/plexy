@@ -560,7 +560,7 @@ wheels = [
 
 [[package]]
 name = "plexy"
-version = "0.2.2.dev0"
+version = "0.2.2"
 source = { editable = "." }
 dependencies = [
     { name = "appdirs" },
