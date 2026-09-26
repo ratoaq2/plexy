@@ -91,15 +91,42 @@ def test_audio_rank(watching_preference: WatchingPreference, streams: list[ET.El
 
 
 @pytest.mark.parametrize(
-    ("language", "expected"),
+    ("language", "streams", "expected"),
     [
-        pytest.param("ja", 2, id="given language with a track wins over the default track"),
-        pytest.param("de", 1, id="given language with no track uses the media"),
+        pytest.param(
+            "ja",
+            [video_stream("en"), audio("en", 1, selected=True, default=True), audio("ja", 2)],
+            2,
+            id="given language with a track wins over the default track",
+        ),
+        pytest.param(
+            "de",
+            [video_stream("en"), audio("en", 1, selected=True, default=True), audio("ja", 2)],
+            1,
+            id="given language with no track uses the media",
+        ),
+        pytest.param(
+            "en",
+            [video_stream("en-US"), audio("en-US", 1, default=True), audio("en", 2, selected=True)],
+            1,
+            id="country of the video stream when the base language is the same",
+        ),
+        pytest.param(
+            "en",
+            [video_stream(None), audio("en-US", 1, default=True), audio("en", 2, selected=True)],
+            1,
+            id="country of the default audio stream when the base language is the same",
+        ),
+        pytest.param(
+            "fr",
+            [video_stream("en"), audio("fr-CA", 1, default=True), audio("fr", 2), audio("en", 3, selected=True)],
+            2,
+            id="given language when the video stream has another language",
+        ),
     ],
 )
-def test_given_original_language(language: str, expected: int) -> None:
+def test_given_original_language(language: str, streams: list[ET.Element], expected: int) -> None:
     # given
-    streams = [video_stream("en"), audio("en", 1, selected=True, default=True), audio("ja", 2)]
     target = VideoPart("Movie 1", media_part(video(part(*streams))), babelfish.Language.fromietf(language))
 
     # when
