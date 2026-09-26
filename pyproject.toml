@@ -1,6 +1,6 @@
 [project]
 name = "plexy"
-version = "0.2.2"
+version = "0.2.3-dev"
 description = "Your Plex, your way"
 readme = "README.md"
 license = "MIT"
