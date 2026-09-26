@@ -21,6 +21,9 @@ def video_part(*streams: ET.Element) -> VideoPart:
         pytest.param("pt-BR", [subtitle("pt", 1), subtitle("pt-BR", 2)], 2, id="exact language"),
         pytest.param("pt-BR", [subtitle("en", 1), subtitle("pt", 2)], 2, id="same base language"),
         pytest.param("fr", [subtitle("de", 2), subtitle("en", 1)], 1, id="lower index"),
+        pytest.param("zh-TW-Hant", [subtitle("zh-CN", 1), subtitle("zh-TW", 2)], 2, id="same country"),
+        pytest.param("zh-TW-Hant", [subtitle("zh-TW", 2), subtitle("zh-CN", 1)], 2, id="same country, reverse order"),
+        pytest.param("zh-TW-Hant", [subtitle("zh-HK", 2), subtitle("zh-CN", 1)], 1, id="other country, lower index"),
         pytest.param(
             "en",
             [subtitle("en", 1, title="SDH", extendedDisplayTitle="English SDH (SRT)"), subtitle("en", 2)],
