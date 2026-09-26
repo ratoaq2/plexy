@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1
 
 - The Docker image now reads YAML configuration files.
 - Add the `--tmdb-key` option. With a TMDB key, `original` gets the original language from TMDB, not from the media file. plexy keeps the TMDB answers in a cache.
