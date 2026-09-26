@@ -442,11 +442,15 @@ class VideoPart:
     @property
     def original_language(self) -> babelfish.Language | None:
         language = self.__original_language
+        media_language = self.__media_language()
         if language and any(stream.language.alpha3 == language.alpha3 for stream in self.audio_streams):
             logger.debug("%s - original language %s from TMDB", self.title, language)
+            # TMDB has no country. The media can have one, for example en-US.
+            if media_language and media_language.alpha3 == language.alpha3:
+                return media_language
             return language
 
-        return self.__media_language()
+        return media_language
 
     def __media_language(self) -> babelfish.Language | None:
         languages = [

@@ -12,6 +12,9 @@ selection to the Plex server. The code is in `plexy/api.py` (`VideoPart`).
   2. The language of the default video stream.
   3. The language of the default audio stream.
 
+  TMDB gives only the base language, with no country. When the language of step 2 or 3 has the same base
+  language, plexy uses it. For example, TMDB gives `en` and the video stream is `en-US`: the target is `en-US`.
+
 ## Original language from TMDB
 
 `plexy/original_language.py` has `OriginalLanguages`. It finds the `tmdb://` guid of the movie, or of the
