@@ -407,7 +407,7 @@ class VideoPart:
                 else:
                     if a_language.country == desired_language.country:
                         return -1
-                    elif b_language == desired_language.country:
+                    elif b_language.country == desired_language.country:
                         return 1
 
             return (a.index > b.index) - (a.index < b.index)
