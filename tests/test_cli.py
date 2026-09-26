@@ -6,10 +6,11 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner, Result
 
-from plexy import cli
-from tests.builders import audio, part, subtitle, video
+from plexy import cli, original_language
+from tests.builders import audio, part, subtitle, video, video_stream
 from tests.conftest import URL
 from tests.fakeplex import FakePlex
+from tests.faketmdb import FakeTmdb
 
 FakePlexFactory = typing.Callable[..., FakePlex]
 Invoke = typing.Callable[..., Result]
@@ -19,7 +20,11 @@ SERVER = ["--url", URL, "--token", "token"]
 @pytest.fixture
 def invoke(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Invoke:
     """Run the CLI in an empty folder, with an empty user config folder. `files` are config files to write."""
-    monkeypatch.setattr(cli, "dirs", types.SimpleNamespace(user_config_dir=str(tmp_path / "config")))
+    monkeypatch.setattr(
+        cli,
+        "dirs",
+        types.SimpleNamespace(user_config_dir=str(tmp_path / "config"), user_cache_dir=str(tmp_path / "cache")),
+    )
     monkeypatch.chdir(tmp_path)
 
     def run(*args: str, files: dict[str, typing.Any] | None = None) -> Result:
@@ -160,3 +165,52 @@ def test_invalid_option(invoke: Invoke, args: list[str], expected: str) -> None:
     # then
     assert result.exit_code == 2
     assert expected in result.output
+
+
+@pytest.mark.parametrize(
+    ("args", "files"),
+    [
+        pytest.param([*SERVER, "--tmdb-key", "key"], {}, id="option"),
+        pytest.param([], {"plexy.json": {"url": URL, "token": "token", "tmdb_key": "key"}}, id="config file"),
+    ],
+)
+def test_tmdb_key(
+    invoke: Invoke,
+    fake_plex: FakePlexFactory,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    args: list[str],
+    files: dict[str, typing.Any],
+) -> None:
+    # given
+    streams = [video_stream("en"), audio("en", 1, selected=True, default=True), audio("ja", 2)]
+    fake_plex(items=[video(part(*streams), guids=["tmdb://11"])])
+    tmdb = FakeTmdb({"movie/11": "ja"})
+    monkeypatch.setattr(original_language, "tmdb_session", lambda: tmdb)
+
+    # when
+    result = invoke(*args, "preferences", "-l", "en", "--full-summary", "original", files=files)
+
+    # then
+    assert result.exit_code == 0, result.output
+    assert "changed audio from en: English to ja: Japanese" in result.output
+    assert tmdb.requests[0].params == {"api_key": "key"}
+    assert (tmp_path / "cache" / "original_languages.jsonl").is_file()
+
+
+def test_no_tmdb_key_uses_the_media(
+    invoke: Invoke, fake_plex: FakePlexFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # given
+    streams = [video_stream("en"), audio("en", 1, selected=True, default=True), audio("ja", 2)]
+    fake_plex(items=[video(part(*streams), guids=["tmdb://11"])])
+    tmdb = FakeTmdb({"movie/11": "ja"})
+    monkeypatch.setattr(original_language, "tmdb_session", lambda: tmdb)
+
+    # when
+    result = invoke(*SERVER, "preferences", "-l", "en", "original")
+
+    # then
+    assert result.exit_code == 0, result.output
+    assert "0 movie changed out of 1 selected movie" in result.output
+    assert tmdb.requests == []

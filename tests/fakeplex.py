@@ -16,7 +16,7 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures"
 SERVER = FIXTURES / "server"
 SECTION_PLACEHOLDER = "SECTION"
 SEARCH_TYPES = {"1": "movie", "4": "episode"}
-SECTION_TYPES = {"movie": "movie", "episode": "show"}
+SECTION_TYPES = {"movie": "movie", "episode": "show", "show": "show"}
 STREAM_TYPES = {"audioStreamID": "2", "subtitleStreamID": "3"}
 
 section_re = re.compile(r"^/library/sections/(?P<id>\d+)/(?P<route>all|collections)$")
@@ -62,7 +62,7 @@ class FakePlex(requests.Session):
 
     @classmethod
     def from_items(cls, videos: list[ET.Element]) -> "FakePlex":
-        """Build a fake server from Video elements (see tests/builders.py). Sections come from the videos."""
+        """Build a fake server from Video and show elements (see tests/builders.py). Sections come from the items."""
         sections = ET.Element("MediaContainer")
         items: list[ET.Element] = []
         for video in videos:
@@ -81,7 +81,7 @@ class FakePlex(requests.Session):
         """Give the result of each search that has all the `query` values. Other searches give no result."""
         self.answers.append((query, [str(key) for key in rating_keys]))
 
-    def get(self, url: str | bytes, **kwargs: typing.Any) -> requests.Response:  # type: ignore[override]
+    def get(self, url: str | bytes, **kwargs: typing.Any) -> requests.Response:
         parsed = urllib.parse.urlsplit(str(url))
         params = dict(urllib.parse.parse_qsl(parsed.query))
         params.update({k: str(v) for k, v in (kwargs.get("params") or {}).items()})

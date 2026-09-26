@@ -6,8 +6,25 @@ selection to the Plex server. The code is in `plexy/api.py` (`VideoPart`).
 ## Watching preference
 
 - `dubbed`: select the best audio stream for the desired language.
-- `original`: select the best audio stream for the original language. The original language is the language
-  of the default video stream. If it has no language, it is the language of the default audio stream.
+- `original`: select the best audio stream for the original language. plexy finds the original language in
+  this order:
+  1. TMDB, when the user gives a TMDB key and an audio stream has the TMDB language (see below).
+  2. The language of the default video stream.
+  3. The language of the default audio stream.
+
+## Original language from TMDB
+
+`plexy/original_language.py` has `OriginalLanguages`. It finds the `tmdb://` guid of the movie, or of the
+show of an episode. Then it gets `original_language` from the TMDB API.
+
+- The key of each answer is the Plex guid of the movie or show. The answers go to
+  `original_languages.jsonl` in the user cache directory (`appdirs`). A later run sends no request for them.
+- One request for each movie and each show. Episodes of one show use one answer.
+- A read access token goes in the `Authorization` header. A v3 API key goes in the URL, so plexy never logs
+  the URL or the text of a request error.
+- On `429`, the session waits (`Retry-After`) and sends the request again, at most 5 times.
+- A `404` skips that title. Other errors stop TMDB for the rest of the run. Errors do not go to the cache.
+- TMDB codes that are not ISO 639-1 (`xx`, `cn`) give no language. Then plexy uses the media streams.
 
 ## Audio and subtitle
 

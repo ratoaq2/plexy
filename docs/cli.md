@@ -14,8 +14,11 @@ The CLI reads the option defaults from config files, in this order. A later file
 2. `plexy.json`, `plexy.yml`, or `plexy.yaml` in the current directory.
 3. The file of the `--config` option.
 
+The `plexy` group has `--url`, `--token`, and `--tmdb-key`. The config keys are `url`, `token`, and
+`tmdb_key`. The `preferences` command writes its cache to the user cache directory (`appdirs`).
+
 YAML needs the `yaml` extra (see `pyproject.toml`). `.gitignore` ignores local `plexy*.yml` files, because
-they can contain a Plex token.
+they can contain a Plex token or a TMDB key.
 
 ## Parameter types
 

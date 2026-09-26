@@ -3,6 +3,7 @@ from __future__ import annotations
 import enum
 import functools
 import logging
+import os
 import re
 import typing
 
@@ -14,6 +15,7 @@ import plexapi.video
 from trakit import trakit
 
 from plexy.exceptions import InvalidTitle
+from plexy.original_language import OriginalLanguages
 from plexy.utils import get_expected_languages, get_title
 
 logger = logging.getLogger(__name__)
@@ -116,9 +118,11 @@ class Title:
 
 
 class Settings:
-    def __init__(self, url: str, token: str):
+    def __init__(self, url: str, token: str, tmdb_key: str | None = None, cache_dir: str | None = None):
         self.url = url
         self.token = token
+        self.tmdb_key = tmdb_key
+        self.cache_dir = cache_dir
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} [{self.url}]>"
@@ -245,9 +249,20 @@ class Video:
     def type(self) -> str:
         return "episode" if isinstance(self.video, plexapi.video.Episode) else "movie"
 
-    def save_preferences(self, preferences: Preferences) -> list[Change]:
+    def save_preferences(
+        self, preferences: Preferences, original_languages: OriginalLanguages | None = None
+    ) -> list[Change]:
         logger.debug("Retrieving information for %s", self.title)
         self.video.reload()
+        original_language = None
+        if (
+            original_languages
+            and preferences.watching_preference == WatchingPreference.ORIGINAL
+            and not preferences.keep_selected_audio
+        ):
+            original_language = original_languages.get(
+                typing.cast("plexapi.video.Movie | plexapi.video.Episode", self.video)
+            )
         medias: list[plexapi.media.Media] = self.video.media
         logger.debug("Found %d medias for video %s", len(medias), self.title)
         changes: list[Change] = []
@@ -255,7 +270,7 @@ class Video:
             parts: list[plexapi.media.MediaPart] = media.parts
             for part in parts:
                 logger.debug("Inspecting %s", part.file)
-                target = VideoPart(self.title, part)
+                target = VideoPart(self.title, part, original_language)
                 change = target.save_preferences(preferences)
                 if change:
                     changes.append(change)
@@ -366,9 +381,10 @@ class Stream:
 
 
 class VideoPart:
-    def __init__(self, title: str, media: plexapi.media.MediaPart):
+    def __init__(self, title: str, media: plexapi.media.MediaPart, original_language: babelfish.Language | None = None):
         self.title = title
         self.media = media
+        self.__original_language = original_language
         self.video_streams: list[Stream] = [Stream.from_stream(stream) for stream in media.videoStreams()]
         self.audio_streams: list[Stream] = [Stream.from_stream(stream) for stream in media.audioStreams()]
         self.subtitle_streams: list[Stream] = [Stream.from_stream(stream) for stream in media.subtitleStreams()]
@@ -425,6 +441,14 @@ class VideoPart:
 
     @property
     def original_language(self) -> babelfish.Language | None:
+        language = self.__original_language
+        if language and any(stream.language.alpha3 == language.alpha3 for stream in self.audio_streams):
+            logger.debug("%s - original language %s from TMDB", self.title, language)
+            return language
+
+        return self.__media_language()
+
+    def __media_language(self) -> babelfish.Language | None:
         languages = [
             stream.language
             for stream in sorted(self.video_streams, key=lambda x: x.default, reverse=True)
@@ -561,6 +585,10 @@ class Plex:
     def __init__(self, settings: Settings):
         self.settings = settings
         self._plex: plexapi.server.PlexServer | None = None
+        self.original_languages: OriginalLanguages | None = None
+        if settings.tmdb_key:
+            cache_path = os.path.join(settings.cache_dir, "original_languages.jsonl") if settings.cache_dir else None
+            self.original_languages = OriginalLanguages(settings.tmdb_key, cache_path)
 
     @property
     def server(self) -> plexapi.server.PlexServer:

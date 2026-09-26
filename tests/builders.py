@@ -14,22 +14,54 @@ from plexy import Preferences, WatchingPreference
 STREAM_TYPES = {"video": "1", "audio": "2", "subtitle": "3"}
 
 
-def video(*parts: ET.Element, rating_key: int = 1, kind: str = "movie", section: int = 1) -> ET.Element:
-    """Return a Video element. `kind` is `movie` or `episode`."""
+def video(
+    *parts: ET.Element,
+    rating_key: int = 1,
+    kind: str = "movie",
+    section: int = 1,
+    guids: typing.Iterable[str] = (),
+    show_key: int = 100,
+) -> ET.Element:
+    """Return a Video element. `kind` is `movie` or `episode`. An episode belongs to the show `show_key`.
+
+    `guids` are external IDs, for example `tmdb://11`. Use made-up IDs: a real ID shows a title.
+    """
     elem = ET.Element(
         "Video",
         ratingKey=str(rating_key),
         key=f"/library/metadata/{rating_key}",
+        guid=f"plex://{kind}/{rating_key}",
         type=kind,
         title=f"{kind.capitalize()} {rating_key}",
         librarySectionID=str(section),
     )
     if kind == "episode":
         elem.attrib.update(grandparentTitle="Show 1", parentIndex="1", index=str(rating_key))
+        elem.attrib.update(
+            grandparentRatingKey=str(show_key),
+            grandparentKey=f"/library/metadata/{show_key}",
+            grandparentGuid=f"plex://show/{show_key}",
+        )
     else:
         elem.set("year", "2000")
+    elem.extend(ET.Element("Guid", id=guid) for guid in guids)
     media = ET.SubElement(elem, "Media", id=str(rating_key))
     media.extend(parts or [part()])
+    return elem
+
+
+def show(rating_key: int = 100, section: int = 1, guids: typing.Iterable[str] = ()) -> ET.Element:
+    """Return the Directory element of a show. Put it on the fake server with its episodes."""
+    elem = ET.Element(
+        "Directory",
+        ratingKey=str(rating_key),
+        key=f"/library/metadata/{rating_key}/children",
+        guid=f"plex://show/{rating_key}",
+        type="show",
+        title="Show 1",
+        librarySectionID=str(section),
+    )
+    elem.extend(ET.Element("Guid", id=guid) for guid in guids)
     return elem
 
 

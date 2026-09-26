@@ -148,6 +148,10 @@ def set_default_config(ctx: click.Context, param: click.Parameter | None, config
 @click.option("-u", "--url", required=True, help="Plex server address, e.g.: http://myserver:32400")
 @click.option("-t", "--token", required=True, help="Plex token.")
 @click.option(
+    "--tmdb-key",
+    help="TMDB read access token or API key. The original preference then gets the original language from TMDB.",
+)
+@click.option(
     "--config",
     type=click.Path(exists=True),
     callback=set_default_config,
@@ -157,9 +161,9 @@ def set_default_config(ctx: click.Context, param: click.Parameter | None, config
 )
 @click.version_option(__version__)
 @click.pass_context
-def plexy(ctx: click.Context, url: str, token: str) -> None:
+def plexy(ctx: click.Context, url: str, token: str, tmdb_key: str | None) -> None:
     """Your Plex, your way."""
-    settings = Settings(url=url, token=token)
+    settings = Settings(url=url, token=token, tmdb_key=tmdb_key, cache_dir=dirs.user_cache_dir)
     ctx.obj = settings
 
 
@@ -245,7 +249,8 @@ def preferences(
         skip_watching=skip_watching,
     )
 
-    videos = Plex(settings).search(criteria)
+    plex = Plex(settings)
+    videos = plex.search(criteria)
 
     changes: list[Change] = []
     total_count: dict[str, int] = {"movie": 0, "episode": 0}
@@ -261,7 +266,7 @@ def preferences(
     with progressbar as bar:
         for v in bar:
             total_count[v.type] += 1
-            cur_changes = v.save_preferences(prefs)
+            cur_changes = v.save_preferences(prefs, plex.original_languages)
             if cur_changes:
                 changed_count[v.type] += 1
                 if full_summary:

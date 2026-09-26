@@ -24,6 +24,21 @@ def test_example(fake_plex: FakePlexFactory) -> None:
   results would repeat. Give the result of each search with `fake.answer({"title": "Movie 1"}, [1])`.
 - A request that the fake does not know fails the test. This shows a new request from plexy or plexapi.
 
+## Fake TMDB
+
+`tests/faketmdb.py` has `FakeTmdb`, a `requests.Session` for the TMDB API. Give one answer for each path:
+
+```python
+tmdb = FakeTmdb({"movie/11": "ja", "movie/12": 500})
+languages = OriginalLanguages("key", None, session=tmdb)
+```
+
+- A language code (or `None`) gives a `200` answer. A number gives that status. An exception is raised.
+- A path with no answer gives `404`.
+- `tmdb.requests` records each request: the path, the headers, and the parameters.
+- CLI tests replace `plexy.original_language.tmdb_session` with a function that returns the fake.
+- Use made-up TMDB IDs (`video(..., guids=["tmdb://11"])`). A real ID shows a title.
+
 ## CLI tests
 
 The CLI reads config files from the current folder and the user config folder (see `docs/cli.md`). The
@@ -40,7 +55,7 @@ folder. Then a local `plexy.yml` does not change the result.
 
 ## Builder
 
-`tests/builders.py` makes small Plex XML in the test: `video`, `part`, `audio`, `subtitle`, and
+`tests/builders.py` makes small Plex XML in the test: `video`, `show`, `part`, `audio`, `subtitle`, and
 `video_stream`. Use it for a rule of the stream selection. Use a fixture for a case from a real library.
 
 ```python
@@ -52,6 +67,8 @@ elem = video(part(audio("ja", 1, selected=True), audio("en", 2), subtitle("en", 
 - `fake_plex(items=[elem])` puts the video on the fake server. It copies the video, so a PUT does not
   change `elem`. Use it when the test checks `fake.puts`.
 - The stream ID is the stream index + 1.
+- `video(..., guids=[...])` adds `Guid` tags. An episode belongs to the show `show_key` (default `100`). Put
+  `show(100, guids=[...])` on the fake server when plexy reads the show.
 
 ## Capture tool
 
