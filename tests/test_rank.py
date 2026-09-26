@@ -1,6 +1,7 @@
 import typing
 import xml.etree.ElementTree as ET
 
+import babelfish
 import pytest
 
 from plexy import WatchingPreference
@@ -83,6 +84,26 @@ def test_audio_rank(watching_preference: WatchingPreference, streams: list[ET.El
 
     # when
     chosen = target.choose_audio_track(preferences(watching_preference, "en"))
+
+    # then
+    assert chosen is not None
+    assert chosen.index == expected
+
+
+@pytest.mark.parametrize(
+    ("language", "expected"),
+    [
+        pytest.param("ja", 2, id="given language with a track wins over the default track"),
+        pytest.param("de", 1, id="given language with no track uses the media"),
+    ],
+)
+def test_given_original_language(language: str, expected: int) -> None:
+    # given
+    streams = [video_stream("en"), audio("en", 1, selected=True, default=True), audio("ja", 2)]
+    target = VideoPart("Movie 1", media_part(video(part(*streams))), babelfish.Language.fromietf(language))
+
+    # when
+    chosen = target.choose_audio_track(preferences(ORIGINAL, "en"))
 
     # then
     assert chosen is not None

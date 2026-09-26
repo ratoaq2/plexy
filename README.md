@@ -31,6 +31,10 @@ You give a language and a watching preference: `original` or `dubbed`.
 | `original` | The original audio. | Your language, if the audio is not in your language. |
 | `dubbed` | Your language. | Your language, only if no audio track is in your language. |
 
+Plexy finds the original language in the media file: the language of the default video track, or else of the
+default audio track. Some files have a default track in a dubbed language. For a better result, give a TMDB key
+(see [Original language from TMDB](#original-language-from-tmdb)).
+
 Plexy gives a lower priority to:
 
 - Commentary audio tracks.
@@ -189,6 +193,24 @@ Plexy reads the configuration files in this order. A later file overrides an ear
 
 Options on the command line override the configuration files.
 
+## Original language from TMDB
+
+With a TMDB key, `original` gets the original language of each movie and show from
+[TMDB](https://www.themoviedb.org/). Plexy uses the media file when TMDB has no answer, or when no audio
+track has the TMDB language.
+
+1. Make a free TMDB account.
+2. Open [the API settings](https://www.themoviedb.org/settings/api) and request an API key.
+3. Copy the **API Read Access Token**. The **API Key** also works, but it goes in the request URL.
+4. Add it to your configuration file:
+
+   ```yaml
+   tmdb_key: eyJhbGciOiJIUzI1NiJ9...
+   ```
+
+Plexy sends one request for each movie and each show. It keeps the answers in a cache, so a later run sends
+requests only for new titles.
+
 ## Use Docker
 
 The Docker image does not read YAML files. Use a JSON configuration file, for example `plexy.json`:
@@ -251,7 +273,7 @@ Options:
 ## Report a bug
 
 Open an [issue](https://github.com/ratoaq2/plexy/issues). Add the output of the command with the `--debug` option.
-Before you send the output, make sure that it does not contain your token.
+Before you send the output, make sure that it does not contain your Plex token or your TMDB key.
 
 ## Contribute
 

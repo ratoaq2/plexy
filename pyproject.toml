@@ -46,6 +46,7 @@ dependencies = [
     "babelfish>=0.6.1",
     "trakit>=0.2.3",
     "appdirs>=1.4.4",
+    "requests>=2.32",
 ]
 
 [project.optional-dependencies]
@@ -68,6 +69,7 @@ dev = [
     "pytest>=8.4.1",
     "mockito>=1.4.0",
     "pre-commit>=4.0.0",
+    "types-requests>=2.33.0.20260906",
 ]
 
 [tool.pytest.ini_options]
