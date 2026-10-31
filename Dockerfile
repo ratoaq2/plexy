@@ -1,4 +1,4 @@
-FROM python:3.14-slim AS builder
+FROM python:3.15-slim AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
@@ -13,7 +13,7 @@ COPY plexy/ /app/plexy/
 RUN uv sync --locked --no-dev --extra yaml
 
 
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 COPY --from=builder /app /app
 
