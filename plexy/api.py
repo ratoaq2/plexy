@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import enum
-import functools
 import logging
 import os
 import re
@@ -380,6 +379,15 @@ class Stream:
         return f"<{self.__class__.__name__} - {self}]>"
 
 
+def matches(language: babelfish.Language, target: babelfish.Language) -> bool:
+    """Return True if each part of the target (base language, script, country) is the same in the language."""
+    return (
+        language.alpha3 == target.alpha3
+        and target.script in (None, language.script)
+        and target.country in (None, language.country)
+    )
+
+
 class VideoPart:
     def __init__(self, title: str, media: plexapi.media.MediaPart, original_language: babelfish.Language | None = None):
         self.title = title
@@ -390,45 +398,28 @@ class VideoPart:
         self.subtitle_streams: list[Stream] = [Stream.from_stream(stream) for stream in media.subtitleStreams()]
 
     @staticmethod
-    def __get_lang_cmp(desired_language: babelfish.Language) -> typing.Callable[[Stream, Stream], int]:
+    def __get_lang_key(desired_language: babelfish.Language) -> typing.Callable[[Stream], tuple[bool | int, ...]]:
+        """Return the sort key of the rank in docs/stream-selection.md."""
 
-        def language_cmp(a: Stream, b: Stream) -> int:
-            a_language = a.language
-            b_language = b.language
-            if a_language == b_language:
-                for prop in ("commentary", "closed_caption", "hearing_impaired"):
-                    a_prop = getattr(a, prop)
-                    b_prop = getattr(b, prop)
-                    if not a_prop and b_prop:
-                        return -1
-                    if a_prop and not b_prop:
-                        return 1
+        def language_key(stream: Stream) -> tuple[bool | int, ...]:
+            language = stream.language
+            same_base = language.alpha3 == desired_language.alpha3
+            other_script = same_base and desired_language.script not in (None, language.script)
+            other_country = same_base and desired_language.country not in (None, language.country)
+            return (
+                not same_base,
+                not matches(language, desired_language),
+                other_script,
+                other_country,
+                stream.commentary,
+                stream.closed_caption,
+                stream.hearing_impaired,
+                language != desired_language,
+                stream.index < 0,  # plexapi gives -1 to an external stream
+                stream.index,
+            )
 
-                return 0
-            elif a_language == desired_language:
-                return -1
-            elif b_language == desired_language:
-                return 1
-            elif a_language.alpha3 != b_language.alpha3:
-                if a_language.alpha3 == desired_language.alpha3:
-                    return -1
-                elif b_language.alpha3 == desired_language.alpha3:
-                    return 1
-            else:
-                if a_language.country == b_language.country:
-                    if a_language.script == desired_language.script:
-                        return -1
-                    elif b_language.script == desired_language.script:
-                        return 1
-                else:
-                    if a_language.country == desired_language.country:
-                        return -1
-                    elif b_language.country == desired_language.country:
-                        return 1
-
-            return (a.index > b.index) - (a.index < b.index)
-
-        return language_cmp
+        return language_key
 
     @property
     def part(self) -> plexapi.media.MediaPart:
@@ -500,7 +491,7 @@ class VideoPart:
             if (preferences.watching_preference == WatchingPreference.DUBBED)
             else self.original_language
         )
-        language_cmp = VideoPart.__get_lang_cmp(target_language)
+        language_key = VideoPart.__get_lang_key(target_language)
 
         streams = sorted(
             [
@@ -509,13 +500,13 @@ class VideoPart:
                 if (not preferences.audio_codecs or audio.codec in preferences.audio_codecs)
                 and audio.codec not in preferences.excluded_audio_codecs
             ],
-            key=functools.cmp_to_key(language_cmp),
+            key=language_key,
         )
 
         return streams[0] if streams else self.selected_audio
 
     def choose_subtitle_track(self, preferences: Preferences) -> Stream | None:
-        language_cmp = VideoPart.__get_lang_cmp(preferences.language)
+        language_key = VideoPart.__get_lang_key(preferences.language)
 
         streams = sorted(
             [
@@ -524,7 +515,7 @@ class VideoPart:
                 if (not preferences.subtitle_codecs or subtitle.codec in preferences.subtitle_codecs)
                 and subtitle.codec not in preferences.excluded_subtitle_codecs
             ],
-            key=functools.cmp_to_key(language_cmp),
+            key=language_key,
         )
 
         return streams[0] if streams else self.selected_subtitle
@@ -538,11 +529,11 @@ class VideoPart:
             logger.debug("%s - new audio track in %s selected: %s", self.title, selected_audio.language, selected_audio)
             self.select_audio(selected_audio)
 
-        selected_audio_lang = selected_audio.language if selected_audio else None
+        audio_matches = selected_audio is not None and matches(selected_audio.language, preferences.language)
         selected_subtitle = previous_selected_subtitle
         if preferences.keep_selected_subtitle and selected_subtitle:
             pass
-        elif selected_audio_lang != preferences.language or preferences.force_subtitles:
+        elif not audio_matches or preferences.force_subtitles:
             selected_subtitle = self.choose_subtitle_track(preferences)
             if selected_subtitle is not None and selected_subtitle != previous_selected_subtitle:
                 logger.debug(
