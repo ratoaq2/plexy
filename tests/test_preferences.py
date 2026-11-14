@@ -146,3 +146,15 @@ def test_subtitle_options(fake_plex: FakePlexFactory, options: dict[str, typing.
 
     # then
     assert fake.puts == expected
+
+
+def test_audio_that_matches_the_language_needs_no_subtitle(fake_plex: FakePlexFactory) -> None:
+    # given
+    streams = [audio("en-US", 1, selected=True), subtitle_stream("pt", 2, selected=True), subtitle_stream("en", 3)]
+    fake = fake_plex(items=[video(part(*streams))])
+
+    # when
+    run(Criteria(), preferences(WatchingPreference.DUBBED, "en"))
+
+    # then
+    assert fake.puts == [subtitle(1, 0)]

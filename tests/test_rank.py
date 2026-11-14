@@ -40,6 +40,41 @@ def video_part(*streams: ET.Element) -> VideoPart:
         pytest.param(
             "en", [subtitle("en", 1, codec="eia_608"), subtitle("en", 2)], 2, id="normal before closed caption codec"
         ),
+        pytest.param(
+            "en",
+            [subtitle("en-US", 3), subtitle("en", 4, title="SDH", extendedDisplayTitle="English SDH (SRT)")],
+            3,
+            id="matching normal before matching SDH",
+        ),
+        pytest.param(
+            "pt-BR",
+            [subtitle("pt", 3), subtitle("pt-BR", 4, title="SDH", extendedDisplayTitle="Portuguese SDH (SRT)")],
+            4,
+            id="matching SDH before other country",
+        ),
+        pytest.param(
+            "zh-Hant",
+            [subtitle("zh-Hans", 3), subtitle("zh-Hant", 4, title="SDH", extendedDisplayTitle="Chinese SDH (SRT)")],
+            4,
+            id="matching SDH before other script",
+        ),
+        pytest.param("en", [subtitle("en-US", 3), subtitle("en", 4)], 4, id="exact language between normal streams"),
+        pytest.param(
+            "en",
+            [
+                subtitle("en-US", 3, title="SDH", extendedDisplayTitle="English SDH (SRT)"),
+                subtitle("en", 4, title="SDH", extendedDisplayTitle="English SDH (SRT)"),
+            ],
+            4,
+            id="exact language between SDH streams",
+        ),
+        pytest.param(
+            "en-US",
+            [subtitle("en", 3), subtitle("en-US", 4, title="SDH", extendedDisplayTitle="English SDH (SRT)")],
+            4,
+            id="matching SDH before normal with no country",
+        ),
+        pytest.param("pt-BR", [subtitle("pt-BR", 6), subtitle("pt-BR", -1, id="47")], 6, id="embedded before external"),
     ],
 )
 def test_subtitle_rank(language: str, streams: list[ET.Element], expected: int) -> None:
@@ -58,6 +93,12 @@ def test_subtitle_rank(language: str, streams: list[ET.Element], expected: int) 
     ("watching_preference", "streams", "expected"),
     [
         pytest.param(DUBBED, [audio("ja", 1, selected=True), audio("en", 2)], 2, id="dubbed"),
+        pytest.param(
+            DUBBED,
+            [audio("ja", 1, selected=True), audio("en-US", 2), audio("en", 3)],
+            3,
+            id="exact language between normal streams",
+        ),
         pytest.param(
             DUBBED,
             [audio("en", 1, title="Commentary", extendedDisplayTitle="English Commentary (AAC)"), audio("en", 2)],
