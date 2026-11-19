@@ -5,8 +5,13 @@ import plexapi.media
 
 
 def get_title(stream: plexapi.media.MediaPartStream) -> str | None:
-    titles: list[str | None] = [stream.extendedDisplayTitle, stream.displayTitle, stream.title]
-    return sorted(titles, key=lambda x: len(x) if x else 0, reverse=True)[0]
+    """Return the title fields, longest first, without a field that is part of a longer one."""
+    fields: list[str | None] = [stream.extendedDisplayTitle, stream.displayTitle, stream.title]
+    titles: list[str] = []
+    for field in sorted(filter(None, fields), key=len, reverse=True):
+        if not any(field in title for title in titles):
+            titles.append(field)
+    return " ".join(titles) or None
 
 
 def get_expected_languages(stream: plexapi.media.MediaPartStream) -> list[babelfish.Language]:
