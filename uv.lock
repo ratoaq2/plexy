@@ -596,7 +596,7 @@ requires-dist = [
     { name = "plexapi", specifier = ">=4.18.1" },
     { name = "pyyaml", marker = "extra == 'yaml'", specifier = ">=6.0" },
     { name = "requests", specifier = ">=2.32" },
-    { name = "trakit", specifier = ">=0.2.3" },
+    { name = "trakit", specifier = ">=0.5.0" },
 ]
 provides-extras = ["yaml"]
 
@@ -780,15 +780,15 @@ wheels = [
 
 [[package]]
 name = "trakit"
-version = "0.4.0"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "babelfish" },
     { name = "rebulk" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/47/35/e2273b5152ff6f77b9dd6449547c4d14bfb170fa00893f64fd785ec67116/trakit-0.4.0.tar.gz", hash = "sha256:bdf04ca6840ce25f60bc31c4496832e8c14167725b9240badf0e2edf38bb7305", size = 34465, upload-time = "2026-09-15T18:41:44.075Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1a/94/f9e905bbc91a294a30b61c7d13d8216a4e301217fdcfd0298062760d725a/trakit-0.5.0.tar.gz", hash = "sha256:592a6aac08b16f04d020590662365b34116fddf79b3bad0716b4d73d0ec3b063", size = 38449, upload-time = "2026-11-19T12:22:06.697Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/a7/cc13f1f16723e5ed9b13a1a196a4ad31e130813218c6ff5c599bce2b6b24/trakit-0.4.0-py3-none-any.whl", hash = "sha256:89264b561ef5149c3de4a918e4e4fb80a5a0b6bb40a0ed7fa20732d329ac7508", size = 19687, upload-time = "2026-09-15T18:41:43.053Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/c6/f16a2666ce9cf508c3b10f6995c467d5b531851ef51c711a8653f8b3e9ce/trakit-0.5.0-py3-none-any.whl", hash = "sha256:83a8d7989c9982cbdc139196fc8905d7afe1d582dec282d927d06ff592233b53", size = 20246, upload-time = "2026-11-19T12:22:05.633Z" },
 ]
 
 [[package]]
