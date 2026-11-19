@@ -34,19 +34,74 @@ show of an episode. Then it gets `original_language` from the TMDB API.
 1. Remove the streams that the codec options exclude. If the user gives codecs, keep only those codecs.
 2. Sort the other streams by rank (see below). Select the first. If no stream is left, keep the current
    selection.
-3. If the language of the selected audio is not the desired language, or the user forces subtitles, select
+3. If the language of the selected audio does not match the desired language (see "Rank of the streams"),
+   or the user forces subtitles, select
    the best subtitle stream for the desired language. Otherwise, remove the subtitle selection.
 
 The "keep selected" options keep the current audio or subtitle selection.
 
 ## Rank of the streams
 
-`VideoPart.__get_lang_cmp` compares two streams. The better stream comes first:
+plexy sorts the streams by rank and selects the first. The code is `VideoPart.__get_lang_key`.
 
-1. A stream in the exact target language.
-2. A stream with the same base language (`alpha3`). Then the same script, or the same country.
-3. For two streams in the same language: a normal stream before a commentary stream, a closed-caption
-   stream, or a hearing-impaired (SDH) stream.
-4. The lower stream index. Two streams with the same language and the same flags keep the Plex order.
+### Terms
+
+- **Target**: the language that plexy looks for. For subtitles and for `dubbed` audio, it is `--language`.
+  For `original` audio, it is the original language.
+- **Parts of a language**: a base language (`alpha3`), and an optional script and country. `en` has only a
+  base language. `pt-BR` has a country. `zh-Hant` has a script. `zh-TW-Hant` has both.
+- **Match**: a stream matches the target when each part that the target has is the same in the stream. A part
+  that the target does not have has no effect. The target `en` matches `en`, `en-US`, and `en-GB`. The target
+  `pt-BR` matches only `pt-BR`. The target `zh-TW-Hant` does not match `zh-TW`, because `zh-TW` has no script.
+- **Flagged stream**: a commentary, closed-caption, or hearing-impaired (SDH) stream. A normal stream has no
+  flag.
+- **External stream**: a subtitle file next to the media file. An embedded stream is in the media file.
+
+### Groups
+
+The groups, from best to worst:
+
+1. Normal streams that match the target.
+2. Flagged streams that match the target.
+3. Streams with the same base language that do not match the target, in this order:
+   1. Same script as the target, other country.
+   2. Other script, same country as the target.
+   3. Other script and other country.
+
+   A part that the target does not have counts as the same. For example, with the target `pt-BR`, `pt` and
+   `pt-PT` both have the same script.
+4. Streams in another base language.
+
+### Order in a group
+
+In each group, and in each step of group 3, plexy uses these rules in this order:
+
+1. A normal stream comes first. Then an SDH stream, then a closed-caption stream, then a commentary stream.
+2. A stream in the exact target language comes first. With the target `fr`, `fr` comes before `fr-CA`.
+3. An embedded stream comes before an external stream.
+4. The stream with the lower index comes first.
+
+### Examples
+
+| Target | Streams | Selected | Why |
+| --- | --- | --- | --- |
+| `en` | `en-US` normal, `en` SDH | `en-US` normal | Both match. A normal stream comes before an SDH stream. |
+| `en` | `en-US` normal, `en` normal | `en` normal | Both match and are normal. `en` is the exact target. |
+| `pt-BR` | `pt-BR` SDH, `pt` normal | `pt-BR` SDH | Only `pt-BR` matches. A match comes first, also when it has a flag. |
+| `zh-Hant` | `zh-Hant` SDH, `zh-Hans` normal | `zh-Hant` SDH | Only `zh-Hant` matches. A match comes first, also when it has a flag. |
+| `en-US` | `en-US` SDH, `en-GB` normal | `en-US` SDH | Only `en-US` matches. A match comes first, also when it has a flag. |
+| `zh-TW-Hant` | `zh-CN` normal, `zh-TW` normal | `zh-TW` normal | No stream matches. `zh-TW` has the same country as the target. |
+| `pt-BR` | `pt-BR` external, `pt-BR` embedded | `pt-BR` embedded | Both match and are normal. An embedded stream comes first. |
+
+What the user types decides first. A flag decides only between streams in the same group.
+
+Limit: with `en`, the country of the stream has no effect. Between `en-US` and `en-GB`, the lower index wins.
+To get `en-US` first, type `en-US`. Then an `en-US` SDH stream comes before an `en-GB` normal stream.
+
+### Audio in the desired language
+
+`save_preferences` uses the same rule for the subtitle step (see "Audio and subtitle", step 3). The audio is
+in the desired language when its language matches the target. With the target `en`, `en-US` audio matches.
+plexy then removes the subtitle selection, unless the user forces subtitles.
 
 When you change this order, add a test for the new case in `tests/test_rank.py`.
