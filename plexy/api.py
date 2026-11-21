@@ -627,7 +627,12 @@ class Plex:
 
     def __as_user(self, server: plexapi.server.PlexServer, user: str) -> plexapi.server.PlexServer:
         """Return the server for `user`. Switch to the user when the token belongs to the server admin."""
-        account = server.myPlexAccount()
+        try:
+            account = server.myPlexAccount()
+        except plexapi.exceptions.Unauthorized:
+            raise PlexUserError(
+                f"plex.tv does not accept the token. plexy cannot check that it belongs to {user}."
+            ) from None
         names = {name.lower() for name in (account.username, account.email, account.title) if name}
         if user.lower() in names:
             logger.debug("The token belongs to Plex user %s", user)
