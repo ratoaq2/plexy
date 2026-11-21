@@ -5,131 +5,105 @@
   </picture>
 </h1>
 
-[![Latest Version](https://img.shields.io/pypi/v/plexy.svg)](https://pypi.python.org/pypi/plexy)
-[![tests](https://github.com/ratoaq2/plexy/actions/workflows/test.yml/badge.svg)](https://github.com/ratoaq2/plexy/actions/workflows/test.yml)
+Select the audio and subtitle tracks of your Plex movies and shows, in your language, with one command.
+
+[![PyPI version](https://img.shields.io/pypi/v/plexy.svg)](https://pypi.org/project/plexy/)
+[![Python versions](https://img.shields.io/pypi/pyversions/plexy.svg)](https://pypi.org/project/plexy/)
+[![Tests](https://github.com/ratoaq2/plexy/actions/workflows/test.yml/badge.svg)](https://github.com/ratoaq2/plexy/actions/workflows/test.yml)
+[![Docker pulls](https://img.shields.io/docker/pulls/ratoaq2/plexy.svg)](https://hub.docker.com/r/ratoaq2/plexy)
 [![License](https://img.shields.io/github/license/ratoaq2/plexy.svg)](https://github.com/ratoaq2/plexy/blob/main/LICENSE)
 
-Plexy is a command line tool. It selects the audio and subtitle tracks for your Plex movies and shows, in the language that you want.
+![plexy selects the original audio with Brazilian Portuguese subtitles for one Plex user, and the German audio for a second user](https://raw.githubusercontent.com/ratoaq2/plexy/main/docs/images/demo.gif)
 
-```bash
-plexy preferences --language en --title "The Matrix (1999)" --full-summary original
-```
-```
-Configuring watching preferences  [####################################]  100%
-1 movie changed out of 1 selected movie
-The Matrix (1999) changed from pt-BR: Português (SRT External) to no subtitles
-```
+## Why plexy
 
-## Why
+Plex has no setting for "always play the original audio, with subtitles in my language". You must select the
+audio and subtitle tracks for each movie and each episode. With a large library, this takes a long time.
 
-Plex does not have one setting for "always play the original audio with subtitles in my language".
-You must select the audio and subtitle tracks for each movie or show.
-With a large library, this takes a long time.
-Plexy does it for all your library, or for the titles that you select, with one command.
-
-## How it works
-
-You give a language and a watching preference: `original` or `dubbed`.
+plexy does it with one command, for all your libraries or for the titles that you select. You give a language
+and a watching preference:
 
 | Preference | Audio track | Subtitle track |
 | --- | --- | --- |
 | `original` | The original audio. | Your language, if the audio is not in your language. |
 | `dubbed` | Your language. | Your language, only if no audio track is in your language. |
 
-Plexy finds the original language in the media file: the language of the default video track, or else of the
-default audio track. Some files have a default track in a dubbed language. For a better result, give a TMDB key
-(see [Original language from TMDB](#original-language-from-tmdb)).
-
-Plexy gives a lower priority to:
+plexy gives a lower priority to:
 
 - Commentary and audio description tracks.
 - Forced subtitle tracks, for example "Signs & Songs".
 - Closed caption (CC) and hearing-impaired (SDH) subtitle tracks.
 
 > [!WARNING]
-> Plexy changes the track selection on your Plex server, for the Plex user of the token.
+> plexy changes the track selection on your Plex server, for the Plex user of the token.
 > Test it on one title first, with `--title` and `--full-summary`.
-
-## Install
-
-Plexy needs Python. The supported versions are in [`pyproject.toml`](pyproject.toml).
-
-With [uv](https://docs.astral.sh/uv/) (recommended):
-
-```bash
-uv tool install "plexy[yaml]"
-```
-
-Or with [pipx](https://pipx.pypa.io/):
-
-```bash
-pipx install "plexy[yaml]"
-```
-
-The `yaml` extra is necessary only for a YAML configuration file. A JSON file works without it.
-
-With Docker, see [Use Docker](#use-docker).
 
 ## Quick start
 
-1. Get your Plex token. Follow the Plex article
+1. Install plexy:
+
+   ```bash
+   uv tool install "plexy[yaml]"
+   ```
+
+2. Get your Plex token. Follow the Plex article
    [Finding an authentication token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/).
-2. Make a file `plexy.yml` in the current folder, with your server address and your token:
+3. Make a file `plexy.yml` in the current folder, with your server address and your token:
 
    ```yaml
    url: http://myplexserver:32400
-   token: ABCDEFGHIJ1234567890
+   token: <your Plex token>
    ```
 
-3. Run plexy on one movie first:
+4. Run plexy on one movie. This example selects the original audio, and English subtitles if the audio is not
+   in English:
+
+   ```text
+   $ plexy preferences --language en --title "The Matrix (1999)" --full-summary original
+   Configuring watching preferences  [####################################]  100%
+   1 movie changed out of 1 selected movie
+   The Matrix (1999) changed from pt-BR: Português (SRT External) to no subtitles
+   ```
+
+5. If the result is correct, run it on all your libraries:
 
    ```bash
-   plexy preferences --language pt-BR --title "The Matrix (1999)" --full-summary original
+   plexy preferences --language en original
    ```
 
-4. If the result is correct, run it on all your libraries:
+## Installation
 
-   ```bash
-   plexy preferences --language pt-BR original
-   ```
+Use one of these commands:
 
-You can also give the server address and the token on the command line:
+| Command | When to use it |
+| --- | --- |
+| `uv tool install "plexy[yaml]"` | Recommended. [uv](https://docs.astral.sh/uv/getting-started/installation/) also installs Python if necessary. |
+| `pipx install "plexy[yaml]"` | You already use [pipx](https://pipx.pypa.io/). |
 
-```bash
-plexy --url http://myplexserver:32400 --token ABCDEFGHIJ1234567890 preferences --language pt-BR original
-```
+The `yaml` extra is necessary only for a YAML configuration file. A JSON file works without it. The supported
+Python versions are in [`pyproject.toml`](pyproject.toml).
 
-## Examples
+To upgrade, use `uv tool upgrade plexy` or `pipx upgrade plexy`.
+
+For Docker, see [Docker](docs/usage.md#docker).
+
+## Usage
 
 The examples use the configuration file from [Quick start](#quick-start).
 
-### Select titles
-
-Only Game of Thrones, French subtitles with the original audio:
+Only one movie, French subtitles with the original audio:
 
 ```bash
-plexy preferences --language fr --title "Game of Thrones" original
+plexy preferences --language fr --title "The Matrix (1999)" original
 ```
 
-Only The Mandalorian, season 2, German audio:
+A show, a season, or an episode, German audio:
 
 ```bash
-plexy preferences --language de --title "Mandalorian s02" dubbed
-```
-
-Only Game of Thrones, season 3, episode 9, German audio:
-
-```bash
+plexy preferences --language de --title "Game of Thrones" dubbed
+plexy preferences --language de --title "The Mandalorian s02" dubbed
 plexy preferences --language de --title "Game of Thrones s03e09" dubbed
 ```
-
-All Matrix movies and the first Avatar movie, Spanish audio:
-
-```bash
-plexy preferences --language es --title "Matrix" --title "Avatar (2009)" dubbed
-```
-
-### Select a library
 
 Only the "Movies" library, English audio:
 
@@ -137,43 +111,78 @@ Only the "Movies" library, English audio:
 plexy preferences --library Movies --language en dubbed
 ```
 
-### Select by date added
-
-Titles added in the last week:
+The titles that you added in the last week:
 
 ```bash
-plexy preferences --language pt --newer-than 1w original
+plexy preferences --language pt-BR --newer-than 1w original
 ```
 
-Titles in the "Movies" library, added before the last week:
-
-```bash
-plexy preferences --library Movies --language pt-BR --older-than 1w original
-```
-
-### Exclude a codec
-
-Some players cannot play all codecs. For example, the Chromecast with Google TV cannot play Dolby TrueHD audio.
-This command does not select TrueHD audio tracks:
+Do not select an audio codec that your player cannot play. For example, the Chromecast with Google TV cannot
+play Dolby TrueHD:
 
 ```bash
 plexy preferences --language pt-BR --excluded-audio-codec truehd original
 ```
 
-## Configuration file
+Change only the subtitles, and keep the audio that you selected:
 
-A configuration file can contain all the options. Put the options of the `preferences` command under `preferences`:
+```bash
+plexy preferences --language pt-BR --keep-selected-audio original
+```
+
+Select subtitles also when the audio is in your language:
+
+```bash
+plexy preferences --language en --force-subtitles dubbed
+```
+
+Two Plex users with different preferences. The token selects the user, so each user has a configuration file
+with a token (see [More than one Plex user](docs/usage.md#more-than-one-plex-user)):
+
+```bash
+plexy --config me.yml preferences --language pt-BR original
+plexy --config friend.yml preferences --language de dubbed
+```
+
+### Main options
+
+These are the options of `plexy preferences`. The last argument is the watching preference: `original` or
+`dubbed`.
+
+| Option | What it does |
+| --- | --- |
+| `-l`, `--language` | Your language, for example `en` or `pt-BR`. |
+| `-t`, `--title` | Only this movie, show, season, or episode, for example `The Matrix (1999)` or `The Boys s2`. You can use it more than one time. |
+| `-L`, `--library` | Only this library, for example `Movies`. You can use it more than one time. |
+| `-n`, `--newer-than` | Only the titles added in this time, for example `12h` or `1w2d`. |
+| `-o`, `--older-than` | Only the titles added before this time, for example `1w`. |
+| `-A`, `--excluded-audio-codec` | Do not select an audio track with this codec, for example `truehd`. |
+| `-S`, `--excluded-subtitle-codec` | Do not select a subtitle track with this codec, for example `eia_608`. |
+| `-f`, `--full-summary` | Show each change. |
+| `--skip-watching` | Do not change a title that you started to watch and did not finish. |
+| `--keep-selected-audio` | Do not change the audio track. |
+| `--keep-selected-subtitle` | Do not change the subtitle track. |
+| `--force-subtitles` | Select subtitles also when the audio is in your language. |
+| `--debug` | Show information to report a bug. |
+
+Before `preferences`, `--url`, `--token`, and `--tmdb-key` connect plexy to your server and to TMDB.
+`--config` gives a configuration file. For all options and their formats, see [docs/usage.md](docs/usage.md).
+
+### Configuration file
+
+A configuration file can contain all the options. Put the options of `plexy preferences` in the
+`preferences` section, with `_` in place of `-`:
 
 ```yaml
 url: http://myplexserver:32400
-token: ABCDEFGHIJ1234567890
+token: <your Plex token>
 preferences:
   library:
     - Movies
     - TV Shows
   excluded_subtitle_codec:
     - eia_608
-  full_summary: True
+  full_summary: true
   language: pt-BR
   watching_preference: original
 ```
@@ -184,104 +193,51 @@ With this file, this command is sufficient:
 plexy preferences
 ```
 
-Plexy reads the configuration files in this order. A later file overrides an earlier file.
+plexy reads a file in your user configuration folder, `plexy.yml` in the current folder, and the file of the
+`--config` option. An option on the command line replaces the value in the file. For the order and the
+folders, see [Configuration file](docs/usage.md#configuration-file).
 
-1. `config.json`, `config.yaml`, or `config.yml` in the user folder:
-   - macOS: `~/Library/Preferences/plexy`
-   - Linux: `~/.config/plexy/`
-   - Windows: `C:\Users\<USER>\AppData\Local\plexy\plexy`
-2. `plexy.json`, `plexy.yaml`, or `plexy.yml` in the current folder.
-3. The file of the `--config` option:
+### Original language from TMDB
 
-   ```bash
-   plexy --config myconfig.yml preferences
-   ```
+For `original`, plexy finds the original language in the media file: the language of the default video track,
+or else of the default audio track. Some files have a default track in a dubbed language. For a better
+result, add a free [TMDB](https://www.themoviedb.org/) key to your configuration file:
 
-Options on the command line override the configuration files.
-
-## Original language from TMDB
-
-With a TMDB key, `original` gets the original language of each movie and show from
-[TMDB](https://www.themoviedb.org/). Plexy uses the media file when TMDB has no answer, or when no audio
-track has the TMDB language.
-
-1. Make a free TMDB account.
-2. Open [the API settings](https://www.themoviedb.org/settings/api) and request an API key.
-3. Copy the **API Read Access Token**. The **API Key** also works, but it goes in the request URL.
-4. Add it to your configuration file:
-
-   ```yaml
-   tmdb_key: eyJhbGciOiJIUzI1NiJ9...
-   ```
-
-Plexy sends one request for each movie and each show. It keeps the answers in a cache, so a later run sends
-requests only for new titles.
-
-## Use Docker
-
-The Docker image reads JSON and YAML configuration files. For example, `plexy.json`:
-
-```json
-{
-  "url": "http://myplexserver:32400",
-  "token": "ABCDEFGHIJ1234567890"
-}
+```yaml
+tmdb_key: <your TMDB read access token>
 ```
 
-Then run:
+To get a key, see [Original language from TMDB](docs/usage.md#original-language-from-tmdb).
 
-```bash
-docker run --rm -v "$PWD/plexy.json:/plexy.json" ratoaq2/plexy preferences --language pt-BR original
-```
+## FAQ
 
-## All options
+**Which track does plexy select when many tracks are in my language?**
+plexy sorts the tracks with rules, for example a normal track before an SDH track. See
+[Stream selection](docs/stream-selection.md).
 
-<details>
-<summary><code>plexy preferences --help</code></summary>
+**Why did plexy remove my subtitles?**
+plexy removes the subtitles when the audio is in your language. To keep subtitles, use `--force-subtitles`.
 
-```
-Usage: plexy preferences [OPTIONS] {original|dubbed}
+**Does plexy change the tracks for all the users of my Plex server?**
+No. It changes them only for the Plex user of the token. For a second user, use the token of that user. See
+[More than one Plex user](docs/usage.md#more-than-one-plex-user).
 
-  Your watching preferences
+**Does plexy change my media files?**
+No. It changes only the track selection on the Plex server.
 
-  Dubbed prefers an audio track with the desired language.
-  Original prefers the original audio and an additional subtitle track if the audio is not in the desired language.
+**How do I go back to the old tracks?**
+plexy does not keep the old selection. Run plexy again with other options, or select the tracks in Plex.
 
-Options:
-  -L, --library TEXT              Library to be used. e.g: Movies, Shows.
-  -t, --title TITLE               Filter for titles in your library. It could refer to a movie, a
-                                  show, a season or an episode. e.g: Avatar, The Matrix (1999),
-                                  The Boys s2, Chernobyl s01e03, Game of Thrones (2011) s03e09
-  -l, --language LANGUAGE         Desired watching language as IETF code, e.g.: en, pt-BR.
-  -a, --audio-codec [dca|aac|opus|ac3|eac3|truehd|flac|mp2|mp3|vorbis|pcm|unknown]
-                                  Accepted audio codec.
-  -A, --excluded-audio-codec [dca|aac|opus|ac3|eac3|truehd|flac|mp2|mp3|vorbis|pcm|unknown]
-                                  Excluded audio codec.
-  -s, --subtitle-codec [srt|pgs|vobsub|ass|mov_text|eia_608|dvb_subtitle|unknown]
-                                  Accepted subtitle codec.
-  -S, --excluded-subtitle-codec [srt|pgs|vobsub|ass|mov_text|eia_608|dvb_subtitle|unknown]
-                                  Excluded subtitle codec.
-  -n, --newer-than AGE            Filter movies/episodes newer than AGE, e.g. 12h, 1w2d
-  -o, --older-than AGE            Filter movies/episodes older than AGE, e.g. 12h, 1w2d
-  -f, --full-summary              Print the full summary of changed preferences.
-  --skip-watching                 Skip movies/episodes that watch is in progress.
-  --keep-selected-audio           Do not change the selected audio. Useful when using original
-                                  watching preference.
-  --keep-selected-subtitle        Do not change the selected subtitle.
-  --force-subtitles               Select subtitles, even when the audio already matches the
-                                  desired language.
-  --debug                         Print useful information for debugging and for reporting bugs.
-  --help                          Show this message and exit.
-```
-
-</details>
+**plexy says "No video found". Why?**
+No title matches your filters. Check the name of the title and the library. When `--title` has a year, it
+must be the year in Plex.
 
 ## Report a bug
 
-Open an [issue](https://github.com/ratoaq2/plexy/issues). Add the output of the command with the `--debug` option.
-Before you send the output, make sure that it does not contain your Plex token or your TMDB key.
+Open an [issue](https://github.com/ratoaq2/plexy/issues). Add the output of the command with the `--debug`
+option. Before you send the output, make sure that it does not contain your Plex token or your TMDB key.
 
-## Contribute
+## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
