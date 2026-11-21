@@ -76,9 +76,9 @@ elem = video(part(audio("ja", 1, selected=True), audio("en", 2), subtitle("en", 
 requests only. Any other request raises an error before it goes to the server.
 
 ```
-uv run python scripts/capture_fixture.py --config plexy.yml --config plexy-user.yml --title "Some Show s01e03" --scenario episode_2
-uv run python scripts/capture_fixture.py --config plexy.yml --config plexy-user.yml --rating-key 1234 --scenario movie_2
-uv run python scripts/capture_fixture.py --config plexy.yml --config plexy-user.yml --server
+uv run python scripts/capture_fixture.py --config <server config> --config <user config> --title "Some Show s01e03" --scenario episode_2
+uv run python scripts/capture_fixture.py --config <server config> --config <user config> --rating-key 1234 --scenario movie_2
+uv run python scripts/capture_fixture.py --config <server config> --config <user config> --server
 ```
 
 - `--config` takes the CLI config files (see `docs/cli.md`). A later file overrides an earlier file. They
@@ -112,7 +112,7 @@ Before you commit a fixture, read its diff. Make sure that it has no private dat
 `PLEXY_TEST_CONFIG` is set. `scripts/test.sh` and CI skip them.
 
 ```
-PLEXY_TEST_CONFIG=plexy.yml,plexy-test.yml uv run pytest -q --tb=short -m live tests
+PLEXY_TEST_CONFIG="<server config>,<test config>" uv run pytest -q --tb=short -m live tests
 ```
 
 - `PLEXY_TEST_CONFIG` is a comma-separated list of config files (see `docs/cli.md`). A later file overrides
@@ -123,8 +123,8 @@ PLEXY_TEST_CONFIG=plexy.yml,plexy-test.yml uv run pytest -q --tb=short -m live t
 - The filter tests check that Plex gives the expected item for each filter that plexy sends. The fake does
   not apply filters, so only these tests check what a filter means.
 
-`test_items` names items of your library. Keep it in a local config file, for example `plexy-test.yml`.
-`.gitignore` ignores `plexy*.yml`. Media titles must never go into the repo.
+`test_items` names items of your library. Keep it in a local config file.
+Keep all config files outside the repo folder. Media titles must never go into the repo.
 
 ```yaml
 test_items:

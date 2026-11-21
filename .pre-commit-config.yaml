@@ -5,8 +5,17 @@ repos:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
   - repo: local
     hooks:
+      - id: forbid-config
+        name: forbid plexy config files
+        entry: Do not commit plexy config files. They contain the Plex token.
+        language: fail
+        files: '(^|/)plexy[^/]*\.(ya?ml|json)$'
       - id: mypy
         name: mypy
         entry: uv run mypy plexy tests

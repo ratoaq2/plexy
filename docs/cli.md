@@ -18,8 +18,9 @@ from `appdirs`.
 The `plexy` group has `--url`, `--token`, and `--tmdb-key`. The config keys are `url`, `token`, and
 `tmdb_key`. The `preferences` command writes its cache to the user cache directory (`appdirs`).
 
-YAML needs the `yaml` extra (see `pyproject.toml`). `.gitignore` ignores local `plexy*.yml` files, because
-they can contain a Plex token or a TMDB key.
+YAML needs the `yaml` extra (see `pyproject.toml`). Local `plexy*.{yml,yaml,json}` files can contain a Plex
+token or a TMDB key. `.gitignore` ignores them, a pre-commit hook blocks them, and `.claude/settings.json`
+denies Claude Code reads of them. The shell deny rules are best-effort.
 
 ## Parameter types
 

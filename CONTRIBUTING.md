@@ -7,7 +7,8 @@ uv sync --all-extras
 uv run pre-commit install --hook-type pre-commit --hook-type commit-msg
 ```
 
-pre-commit runs ruff, mypy, the knowledge check, and the Conventional Commits check.
+pre-commit runs ruff, mypy, the knowledge check, and the Conventional Commits check. gitleaks and a local
+hook block secrets and `plexy*` config files.
 
 ## Commands
 

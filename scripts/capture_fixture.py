@@ -3,8 +3,8 @@
 The tool sends GET requests only. It keeps an allowlist of XML elements and attributes, renames all media
 titles, and renumbers all IDs. See docs/testing.md.
 
-    uv run python scripts/capture_fixture.py --config plexy.yml --title "Some Show s01e03" --scenario episode_1
-    uv run python scripts/capture_fixture.py --config plexy.yml --server
+    uv run python scripts/capture_fixture.py --config <server config> --title "Some Show s01e03" --scenario episode_1
+    uv run python scripts/capture_fixture.py --config <server config> --server
 """
 
 from __future__ import annotations
