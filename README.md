@@ -1,4 +1,9 @@
-# Plexy
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/ratoaq2/plexy/main/docs/images/logo-dark.png">
+    <img alt="plexy: Your language, your way" src="https://raw.githubusercontent.com/ratoaq2/plexy/main/docs/images/logo-light.png" width="400">
+  </picture>
+</h1>
 
 [![Latest Version](https://img.shields.io/pypi/v/plexy.svg)](https://pypi.python.org/pypi/plexy)
 [![tests](https://github.com/ratoaq2/plexy/actions/workflows/test.yml/badge.svg)](https://github.com/ratoaq2/plexy/actions/workflows/test.yml)
@@ -283,3 +288,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+The plexy name, logo, and icon are not covered by the MIT license. All rights reserved.
