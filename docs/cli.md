@@ -6,13 +6,14 @@ The CLI is in `plexy/cli.py`. It uses Click. To run it from the repo:
 uv run plexy --url <PLEX_URL> --token <TOKEN> preferences ...
 ```
 
+The user reference (all options, parameter formats, configuration files and their order) is in
+`docs/usage.md`.
+
 ## Config files
 
-The CLI reads the option defaults from config files, in this order. A later file overrides an earlier file:
-
-1. `config.json`, `config.yml`, or `config.yaml` in the user config directory (`appdirs`).
-2. `plexy.json`, `plexy.yml`, or `plexy.yaml` in the current directory.
-3. The file of the `--config` option.
+`set_default_config` reads the config files into the Click `default_map`. It uses a shallow `dict.update`, so a
+later file replaces each top-level key, for example all of `preferences`. The user config directory comes
+from `appdirs`.
 
 The `plexy` group has `--url`, `--token`, and `--tmdb-key`. The config keys are `url`, `token`, and
 `tmdb_key`. The `preferences` command writes its cache to the user cache directory (`appdirs`).
@@ -22,9 +23,6 @@ they can contain a Plex token or a TMDB key.
 
 ## Parameter types
 
-| Type | Format | Example |
-| --- | --- | --- |
-| `LANGUAGE` | IETF language code | `pt-BR` |
-| `AGE` | Numbers with the units `w`, `d`, and `h`, in this order | `1w2d` |
-| `TITLE` | Name, then optional year, season, and episode. `Title.from_string` parses it. | `Game of Thrones (2011) s03e09` |
-| Codec enums | A value of `AudioCodec` or `SubtitleCodec` in `plexy/api.py` | `truehd` |
+`LanguageParamType`, `AgeParamType`, `TitleParamType`, and `EnumParamType` in `plexy/cli.py` parse the
+parameters. `Title.from_string` parses a title. The codec values are `AudioCodec` and `SubtitleCodec` in
+`plexy/api.py`.
