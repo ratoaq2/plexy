@@ -214,3 +214,15 @@ def test_no_tmdb_key_uses_the_media(
     assert result.exit_code == 0, result.output
     assert "0 movie changed out of 1 selected movie" in result.output
     assert tmdb.requests == []
+
+
+def test_debug(invoke: Invoke, fake_plex: FakePlexFactory) -> None:
+    # given
+    fake_plex("movie_1")
+
+    # when
+    result = invoke(*SERVER, "preferences", "--debug", "-l", "en", "original")
+
+    # then
+    assert result.exit_code == 0, result.output
+    assert "1 movie changed out of 1 selected movie" in result.output
