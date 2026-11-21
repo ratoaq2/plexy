@@ -369,6 +369,12 @@ def test_user_switch_with_admin_token(invoke: Invoke, fake_plex: FakePlexFactory
         ),
         pytest.param("admin-token", "nobody", "Error: Plex user nobody does not exist", id="unknown user"),
         pytest.param("admin-token", "ghost", "Error: Plex user ghost has no access to the server", id="no access"),
+        pytest.param(
+            "server-token",
+            "friend",
+            "Error: plex.tv does not accept the token. plexy cannot check that it belongs to friend.",
+            id="server token",
+        ),
     ],
 )
 def test_user_error(invoke: Invoke, fake_plex: FakePlexFactory, token: str, user: str, expected: str) -> None:

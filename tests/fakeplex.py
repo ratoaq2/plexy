@@ -22,6 +22,8 @@ STREAM_TYPES = {"audioStreamID": "2", "subtitleStreamID": "3"}
 section_re = re.compile(r"^/library/sections/(?P<id>\d+)/(?P<route>all|collections)$")
 metadata_re = re.compile(r"^/library/metadata/(?P<key>\d+)$")
 part_re = re.compile(r"^/library/parts/(?P<id>\d+)$")
+# plex.tv gives this answer for a token that is not a plex.tv account token, for example a server token
+PLEX_TV_UNAUTHORIZED = '<errors><error code="1001" message="User could not be authenticated" status="401"/></errors>'
 shared_servers_re = re.compile(r"^/api/servers/\w+/shared_servers$")
 
 
@@ -111,6 +113,8 @@ class FakePlex(requests.Session):
         self.gets.append(Request(parsed.path, params))
         if parsed.netloc == "plex.tv":
             token = (kwargs.get("headers") or {}).get("X-Plex-Token", "")
+            if parsed.path == "/api/v2/user" and token not in self.accounts:
+                return self._response(str(url), ET.fromstring(PLEX_TV_UNAUTHORIZED), status_code=401)
             return self._response(str(url), self._plex_tv(parsed.path, token))
         return self._response(str(url), self._route(parsed.path, params))
 
@@ -159,8 +163,6 @@ class FakePlex(requests.Session):
 
     def _plex_tv(self, path: str, token: str) -> ET.Element:
         if path == "/api/v2/user":
-            if token not in self.accounts:
-                raise AssertionError("FakePlex has no plex.tv account for the token. Add it with FakePlex.account().")
             return copy.deepcopy(self.accounts[token])
         if path == "/api/users/":
             return copy.deepcopy(self.users)
@@ -213,9 +215,9 @@ class FakePlex(requests.Session):
                     if stream.get("id") == params[name]:
                         stream.set("selected", "1")
 
-    def _response(self, url: str, elem: ET.Element | None) -> requests.Response:
+    def _response(self, url: str, elem: ET.Element | None, status_code: int = 200) -> requests.Response:
         response = requests.Response()
-        response.status_code = 200
+        response.status_code = status_code
         response.url = url
         response.encoding = "utf-8"
         response._content = b"" if elem is None else ET.tostring(elem, encoding="utf-8")
