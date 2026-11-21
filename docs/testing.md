@@ -7,7 +7,8 @@ on Plex XML that a fake server gives.
 
 `tests/fakeplex.py` has `FakePlex`, a `requests.Session` that acts as a Plex server. The `fake_plex` fixture
 in `tests/conftest.py` loads a scenario and makes each `PlexServer` use `FakePlex` as its session. Then
-`Plex`, `Video`, and the CLI run with no network and no change to `plexy/`.
+`Plex`, `Video`, and the CLI run with no network and no change to `plexy/`. `FakePlex.tokens` records the
+token of each `PlexServer`.
 
 ```python
 def test_example(fake_plex: FakePlexFactory) -> None:
@@ -43,7 +44,8 @@ languages = OriginalLanguages("key", None, session=tmdb)
 
 The CLI reads config files from the current folder and the user config folder (see `docs/cli.md`). The
 `invoke` fixture in `tests/test_cli.py` runs the CLI in an empty temporary folder, with an empty user config
-folder. Then a local `plexy.yml` does not change the result.
+folder. Then a local `plexy.yml` does not change the result. It also removes the `PLEXY_*` secret env vars
+of your shell. Give env vars to a test with `invoke(..., env={...})`.
 
 ## Fixtures
 

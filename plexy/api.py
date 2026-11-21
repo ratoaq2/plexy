@@ -117,11 +117,22 @@ class Title:
 
 
 class Settings:
-    def __init__(self, url: str, token: str, tmdb_key: str | None = None, cache_dir: str | None = None):
+    def __init__(
+        self,
+        url: str,
+        token: str,
+        tmdb_key: str | None = None,
+        cache_dir: str | None = None,
+        token_source: str | None = None,
+        tmdb_key_source: str | None = None,
+    ):
         self.url = url
         self.token = token
         self.tmdb_key = tmdb_key
         self.cache_dir = cache_dir
+        # where the secrets come from, for the debug log
+        self.token_source = token_source
+        self.tmdb_key_source = tmdb_key_source
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} [{self.url}]>"
@@ -593,6 +604,8 @@ class Plex:
         self._plex: plexapi.server.PlexServer | None = None
         self.original_languages: OriginalLanguages | None = None
         if settings.tmdb_key:
+            if settings.tmdb_key_source:
+                logger.debug("TMDB key from %s", settings.tmdb_key_source)
             cache_path = os.path.join(settings.cache_dir, "original_languages.jsonl") if settings.cache_dir else None
             self.original_languages = OriginalLanguages(settings.tmdb_key, cache_path)
 
@@ -600,6 +613,8 @@ class Plex:
     def server(self) -> plexapi.server.PlexServer:
         if self._plex is None:
             logger.debug("Connected to %s", self.settings.url)
+            if self.settings.token_source:
+                logger.debug("Plex token from %s", self.settings.token_source)
             self._plex = plexapi.server.PlexServer(baseurl=self.settings.url, token=self.settings.token)
         return self._plex
 

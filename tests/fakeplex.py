@@ -53,6 +53,8 @@ class FakePlex(requests.Session):
         self.puts: list[Request] = []
         self.answers: list[tuple[dict[str, str], list[str]]] = []
         self.searched: set[tuple[str, str]] = set()
+        # the token of each PlexServer connection
+        self.tokens: list[str] = []
 
     @classmethod
     def from_folder(cls, scenario: str) -> "FakePlex":

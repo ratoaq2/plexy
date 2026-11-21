@@ -167,6 +167,8 @@ These are the options of `plexy preferences`. The last argument is the watching 
 
 Before `preferences`, `--url`, `--token`, and `--tmdb-key` connect plexy to your server and to TMDB.
 `--config` gives a configuration file. For all options and their formats, see [docs/usage.md](docs/usage.md).
+The env vars `PLEXY_TOKEN` and `PLEXY_TMDB_KEY`, or `PLEXY_TOKEN_FILE` and `PLEXY_TMDB_KEY_FILE`, can also give
+the secrets. See [Token and TMDB key](docs/usage.md#token-and-tmdb-key).
 
 ### Configuration file
 

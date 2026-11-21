@@ -4,11 +4,13 @@ import logging
 import os
 import re
 import typing
+from pathlib import Path
 from types import TracebackType
 
 import babelfish
 import click
 from appdirs import AppDirs
+from click.core import ParameterSource
 
 from plexy import (
     AudioCodec,
@@ -84,6 +86,9 @@ SUBTITLE_CODEC = EnumParamType(SubtitleCodec)
 
 dirs = AppDirs(__title__)
 
+# config key: env var. `<env var>_FILE` gives the path of a file with the secret, for example a Docker secret.
+SECRET_ENVVARS = {"token": "PLEXY_TOKEN", "tmdb_key": "PLEXY_TMDB_KEY"}
+
 T = typing.TypeVar("T")
 
 
@@ -141,16 +146,42 @@ def set_default_config(ctx: click.Context, param: click.Parameter | None, config
         # and override values with user provided config
         default_map.update(read_config(config))
 
+    # a secret file overrides the config files. Click puts the command line and the env var before default_map.
+    for key, envvar in SECRET_ENVVARS.items():
+        path = os.environ.get(f"{envvar}_FILE")
+        if not path:
+            continue
+        if os.environ.get(envvar):
+            raise click.UsageError(f"Set {envvar} or {envvar}_FILE, not both.")
+        try:
+            default_map[key] = Path(path).read_text(encoding="utf-8").strip()
+        except OSError:
+            raise click.UsageError(f"Cannot read {envvar}_FILE {path}") from None
+
     ctx.default_map = default_map
 
     return config
 
 
+def secret_source(ctx: click.Context, key: str) -> str:
+    """Tell where the secret comes from, for the debug log. Never the value."""
+    envvar = SECRET_ENVVARS[key]
+    source = ctx.get_parameter_source(key)
+    if source == ParameterSource.COMMANDLINE:
+        return f"--{key.replace('_', '-')}"
+    if source == ParameterSource.ENVIRONMENT:
+        return envvar
+    if os.environ.get(f"{envvar}_FILE"):
+        return f"{envvar}_FILE"
+    return "config file"
+
+
 @click.group(context_settings={"max_content_width": 100}, epilog=f"Suggestions and bug reports: {__url__}")
 @click.option("-u", "--url", required=True, help="Plex server address, e.g.: http://myserver:32400")
-@click.option("-t", "--token", required=True, help="Plex token.")
+@click.option("-t", "--token", required=True, envvar=SECRET_ENVVARS["token"], help="Plex token.")
 @click.option(
     "--tmdb-key",
+    envvar=SECRET_ENVVARS["tmdb_key"],
     help="TMDB read access token or API key. The original preference then gets the original language from TMDB.",
 )
 @click.option(
@@ -165,7 +196,14 @@ def set_default_config(ctx: click.Context, param: click.Parameter | None, config
 @click.pass_context
 def plexy(ctx: click.Context, url: str, token: str, tmdb_key: str | None) -> None:
     """Your language, your way."""
-    settings = Settings(url=url, token=token, tmdb_key=tmdb_key, cache_dir=dirs.user_cache_dir)
+    settings = Settings(
+        url=url,
+        token=token,
+        tmdb_key=tmdb_key,
+        cache_dir=dirs.user_cache_dir,
+        token_source=secret_source(ctx, "token"),
+        tmdb_key_source=secret_source(ctx, "tmdb_key") if tmdb_key else None,
+    )
     ctx.obj = settings
 
 
