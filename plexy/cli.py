@@ -16,6 +16,7 @@ from plexy import (
     AudioCodec,
     Change,
     Criteria,
+    Error,
     InvalidTitle,
     Plex,
     Preferences,
@@ -185,6 +186,11 @@ def secret_source(ctx: click.Context, key: str) -> str:
     help="TMDB read access token or API key. The original preference then gets the original language from TMDB.",
 )
 @click.option(
+    "--user",
+    help="Plex user to set the preferences for: a username, an email, or a display name. "
+    "The token must belong to this user or to the server admin.",
+)
+@click.option(
     "--config",
     type=click.Path(exists=True),
     callback=set_default_config,
@@ -194,7 +200,7 @@ def secret_source(ctx: click.Context, key: str) -> str:
 )
 @click.version_option(__version__)
 @click.pass_context
-def plexy(ctx: click.Context, url: str, token: str, tmdb_key: str | None) -> None:
+def plexy(ctx: click.Context, url: str, token: str, tmdb_key: str | None, user: str | None) -> None:
     """Your language, your way."""
     settings = Settings(
         url=url,
@@ -203,6 +209,7 @@ def plexy(ctx: click.Context, url: str, token: str, tmdb_key: str | None) -> Non
         cache_dir=dirs.user_cache_dir,
         token_source=secret_source(ctx, "token"),
         tmdb_key_source=secret_source(ctx, "tmdb_key") if tmdb_key else None,
+        user=user,
     )
     ctx.obj = settings
 
@@ -290,7 +297,10 @@ def preferences(
     )
 
     plex = Plex(settings)
-    videos = plex.search(criteria)
+    try:
+        videos = plex.search(criteria)
+    except Error as e:
+        raise click.ClickException(str(e)) from None
 
     changes: list[Change] = []
     total_count: dict[str, int] = {"movie": 0, "episode": 0}

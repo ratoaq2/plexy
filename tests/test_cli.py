@@ -2,6 +2,7 @@ import json
 import logging
 import types
 import typing
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -312,3 +313,88 @@ def test_secret_file_missing(invoke: Invoke) -> None:
     # then
     assert result.exit_code == 2
     assert "Cannot read PLEXY_TOKEN_FILE missing" in result.output
+
+
+def plex_home(fake: FakePlex) -> None:
+    """The admin account owns the server. Friend is a shared user. Kid is a managed user, with no username."""
+    fake.account("admin-token", "admin", "admin@example.com", admin=True)
+    fake.account("friend-token", "friend", "friend@example.com", title="Best Friend")
+    fake.account("neighbor-token", "neighbor", "neighbor@example.com")
+    fake.user(2, "friend-token", "Best Friend", username="friend", email="friend@example.com")
+    fake.user(3, "kid-token", "Kid")
+
+
+@pytest.mark.parametrize("user", ["friend", "FRIEND", "friend@example.com", "Best Friend"])
+def test_user_owns_the_token(invoke: Invoke, fake_plex: FakePlexFactory, user: str) -> None:
+    # given
+    fake = fake_plex("movie_1")
+    plex_home(fake)
+
+    # when
+    result = invoke("--url", URL, "--token", "friend-token", "--user", user, "preferences", "-l", "en", "original")
+
+    # then
+    assert result.exit_code == 0, result.output
+    assert "1 movie changed out of 1 selected movie" in result.output
+    assert fake.tokens == ["friend-token"]
+
+
+@pytest.mark.parametrize(
+    ("user", "expected"),
+    [
+        pytest.param("friend", "friend-token", id="username"),
+        pytest.param("FRIEND@example.com", "friend-token", id="email"),
+        pytest.param("kid", "kid-token", id="managed user"),
+    ],
+)
+def test_user_switch_with_admin_token(invoke: Invoke, fake_plex: FakePlexFactory, user: str, expected: str) -> None:
+    # given
+    fake = fake_plex("movie_1")
+    plex_home(fake)
+
+    # when
+    result = invoke("--url", URL, "--token", "admin-token", "--user", user, "preferences", "-l", "en", "original")
+
+    # then
+    assert result.exit_code == 0, result.output
+    assert "1 movie changed out of 1 selected movie" in result.output
+    assert fake.tokens == ["admin-token", expected]
+
+
+@pytest.mark.parametrize(
+    ("token", "user", "expected"),
+    [
+        pytest.param(
+            "neighbor-token", "friend", "Error: The token belongs to neighbor, not to friend", id="other owner"
+        ),
+        pytest.param("admin-token", "nobody", "Error: Plex user nobody does not exist", id="unknown user"),
+        pytest.param("admin-token", "ghost", "Error: Plex user ghost has no access to the server", id="no access"),
+    ],
+)
+def test_user_error(invoke: Invoke, fake_plex: FakePlexFactory, token: str, user: str, expected: str) -> None:
+    # given
+    fake = fake_plex("movie_1")
+    plex_home(fake)
+    ET.SubElement(fake.users, "User", id="4", title="ghost")
+
+    # when
+    result = invoke("--url", URL, "--token", token, "--user", user, "preferences", "-l", "en", "original")
+
+    # then
+    assert result.exit_code == 1
+    assert expected in result.output
+    assert "Traceback" not in result.output
+    assert "-token" not in result.output
+    assert fake.searches == []
+
+
+def test_no_user_sends_no_plex_tv_request(invoke: Invoke, fake_plex: FakePlexFactory) -> None:
+    # given
+    fake = fake_plex("movie_1")
+
+    # when
+    result = invoke(*SERVER, "preferences", "-l", "en", "original")
+
+    # then
+    assert result.exit_code == 0, result.output
+    assert fake.plex_tv_requests == []

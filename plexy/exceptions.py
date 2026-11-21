@@ -8,3 +8,9 @@ class InvalidTitle(Error):
     """Exception raised when parsing Title."""
 
     pass
+
+
+class PlexUserError(Error):
+    """Exception raised when plexy cannot work as the Plex user of the settings."""
+
+    pass

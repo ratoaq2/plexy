@@ -7,13 +7,14 @@ import re
 import typing
 
 import babelfish
+import plexapi.exceptions
 import plexapi.library
 import plexapi.media
 import plexapi.server
 import plexapi.video
 from trakit import trakit
 
-from plexy.exceptions import InvalidTitle
+from plexy.exceptions import InvalidTitle, PlexUserError
 from plexy.original_language import OriginalLanguages
 from plexy.utils import get_expected_languages, get_title
 
@@ -125,9 +126,12 @@ class Settings:
         cache_dir: str | None = None,
         token_source: str | None = None,
         tmdb_key_source: str | None = None,
+        user: str | None = None,
     ):
         self.url = url
         self.token = token
+        # the Plex user to work as. The token belongs to this user or to the server admin.
+        self.user = user
         self.tmdb_key = tmdb_key
         self.cache_dir = cache_dir
         # where the secrets come from, for the debug log
@@ -615,8 +619,34 @@ class Plex:
             logger.debug("Connected to %s", self.settings.url)
             if self.settings.token_source:
                 logger.debug("Plex token from %s", self.settings.token_source)
-            self._plex = plexapi.server.PlexServer(baseurl=self.settings.url, token=self.settings.token)
+            server = plexapi.server.PlexServer(baseurl=self.settings.url, token=self.settings.token)
+            if self.settings.user:
+                server = self.__as_user(server, self.settings.user)
+            self._plex = server
         return self._plex
+
+    def __as_user(self, server: plexapi.server.PlexServer, user: str) -> plexapi.server.PlexServer:
+        """Return the server for `user`. Switch to the user when the token belongs to the server admin."""
+        account = server.myPlexAccount()
+        names = {name.lower() for name in (account.username, account.email, account.title) if name}
+        if user.lower() in names:
+            logger.debug("The token belongs to Plex user %s", user)
+            return server
+
+        owner = server.myPlexUsername
+        if not account.email or not owner or account.email.lower() != owner.lower():
+            raise PlexUserError(f"The token belongs to {account.username or account.title}, not to {user}")
+
+        try:
+            plex_user = account.user(user)
+        except plexapi.exceptions.NotFound:
+            raise PlexUserError(f"Plex user {user} does not exist") from None
+        user_token = plex_user.get_token(server.machineIdentifier)
+        if not user_token:
+            raise PlexUserError(f"Plex user {user} has no access to the server")
+
+        logger.debug("Switched to Plex user %s", user)
+        return plexapi.server.PlexServer(baseurl=self.settings.url, token=user_token)
 
     def __find_sections(self, criteria: Criteria) -> list[plexapi.library.LibrarySection]:
         if not criteria.libraries:

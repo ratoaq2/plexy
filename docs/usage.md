@@ -6,7 +6,7 @@ This page is the reference for the plexy command line. For a first run, read the
 ## Commands
 
 plexy has one command: `preferences`. The options of the `plexy` group (`--url`, `--token`, `--tmdb-key`,
-`--config`) come before the command name. The options of `preferences` come after it:
+`--user`, `--config`) come before the command name. The options of `preferences` come after it:
 
 ```bash
 plexy --config friend.yml preferences --language de dubbed
@@ -43,6 +43,8 @@ Options:
   -t, --token TEXT  Plex token.  [required]
   --tmdb-key TEXT   TMDB read access token or API key. The original preference then gets the
                     original language from TMDB.
+  --user TEXT       Plex user to set the preferences for: a username, an email, or a display name.
+                    The token must belong to this user or to the server admin.
   --config PATH     Path to the config file.
   --version         Show the version and exit.
   --help            Show this message and exit.
@@ -160,8 +162,12 @@ show the value.
 
 ### More than one Plex user
 
-The token selects the Plex user. plexy changes the tracks only for this user. To set the preferences of
-two users, use one file for each user. Put the server address in a shared file:
+plexy changes the tracks for one Plex user at a time. Without `--user`, this is the user of the token. There
+are two methods to set the preferences of more than one user.
+
+#### One configuration file for each user (recommended)
+
+Each file contains the token of one user. Put the server address in a shared file:
 
 ```yaml
 # plexy.yml in the current folder
@@ -169,22 +175,54 @@ url: http://myplexserver:32400
 ```
 
 ```yaml
-# me.yml
+# <path>/me.yml
 token: <the token of the first user>
+user: me
 ```
 
 ```yaml
-# friend.yml
+# <path>/friend.yml
 token: <the token of the second user>
+user: friend
 ```
 
 ```bash
-plexy --config me.yml preferences --language pt-BR original
-plexy --config friend.yml preferences --language de dubbed
+plexy --config <path>/me.yml preferences --language pt-BR original
+plexy --config <path>/friend.yml preferences --language de dubbed
 ```
 
-`me.yml` and `friend.yml` contain a token. Keep them outside the project folder, for example in your user
-configuration folder, and give the full path to `--config`.
+Keep these files outside your project folders, for example in your user configuration folder. The `user` key
+is optional. With it, plexy stops with an error when the token belongs to a different user. Then a wrong
+token cannot change the tracks of the wrong user.
+
+#### One admin token for all users
+
+With the token of the server admin, `--user` (or the `user` key) selects the user. Then the files do not
+contain a token:
+
+```yaml
+# <path>/friend.yml
+user: friend
+preferences:
+  language: de
+  watching_preference: dubbed
+```
+
+```bash
+export PLEXY_TOKEN_FILE=<path of the file with the admin token>
+plexy --url http://myplexserver:32400 --config <path>/friend.yml preferences
+```
+
+#### How plexy uses `--user`
+
+Give a username, an email, or a display name. The comparison ignores case. plexy asks plex.tv for the owner
+of the token:
+
+1. The owner is the user of `--user`: plexy uses the token.
+2. The owner is the admin of the server: plexy gets a token for the user from plex.tv, and works as that user.
+3. Else, plexy stops with an error, for example `The token belongs to neighbor, not to friend`.
+
+With `--user`, plexy needs access to plex.tv, and the server must be signed in to a Plex account.
 
 ## Original language from TMDB
 
