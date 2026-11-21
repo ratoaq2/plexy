@@ -177,13 +177,11 @@ url: http://myplexserver:32400
 ```yaml
 # <path>/me.yml
 token: <the token of the first user>
-user: me
 ```
 
 ```yaml
 # <path>/friend.yml
 token: <the token of the second user>
-user: friend
 ```
 
 ```bash
@@ -191,9 +189,11 @@ plexy --config <path>/me.yml preferences --language pt-BR original
 plexy --config <path>/friend.yml preferences --language de dubbed
 ```
 
-Keep these files outside your project folders, for example in your user configuration folder. The `user` key
-is optional. With it, plexy stops with an error when the token belongs to a different user. Then a wrong
-token cannot change the tracks of the wrong user.
+Keep these files outside your project folders, for example in your user configuration folder.
+
+Do not add the `user` key to these files. The token of a shared user or a managed user is often a server
+token. plex.tv does not accept a server token, so plexy cannot check its owner. Then `--user` stops with an
+error.
 
 #### One admin token for all users
 
@@ -221,6 +221,9 @@ of the token:
 1. The owner is the user of `--user`: plexy uses the token.
 2. The owner is the admin of the server: plexy gets a token for the user from plex.tv, and works as that user.
 3. Else, plexy stops with an error, for example `The token belongs to neighbor, not to friend`.
+
+plex.tv accepts only the token of a Plex account. If plex.tv does not accept the token, plexy stops with an
+error. The Plex server cannot tell the owner of a server token either.
 
 With `--user`, plexy needs access to plex.tv, and the server must be signed in to a Plex account.
 

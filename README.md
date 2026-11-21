@@ -210,10 +210,7 @@ files outside your project folders, and give the path with `--config`:
 ```yaml
 # <path>/friend.yml
 token: <the Plex token of friend>
-user: friend
 ```
-
-The `user` key is optional. With it, plexy stops with an error when the token belongs to a different user.
 
 **One admin token for all users.** With the token of the server admin, `--user` (or the `user` key) selects the
 user. plexy gets a token for that user from plex.tv. The files then do not contain a token:

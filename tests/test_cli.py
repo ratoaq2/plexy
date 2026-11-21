@@ -372,7 +372,7 @@ def test_user_switch_with_admin_token(invoke: Invoke, fake_plex: FakePlexFactory
         pytest.param(
             "server-token",
             "friend",
-            "Error: plex.tv does not accept the token. plexy cannot check that it belongs to friend.",
+            "Error: plex.tv does not accept the token, so plexy cannot check that it belongs to friend.",
             id="server token",
         ),
     ],

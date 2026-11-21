@@ -18,6 +18,10 @@ from `appdirs`.
 The `plexy` group has `--url`, `--token`, `--tmdb-key`, and `--user`. The config keys are `url`, `token`,
 `tmdb_key`, and `user`. The `preferences` command writes its cache to the user cache directory (`appdirs`).
 
+YAML needs the `yaml` extra (see `pyproject.toml`). Local `plexy*.{yml,yaml,json}` files can contain a Plex
+token or a TMDB key. `.gitignore` ignores them, a pre-commit hook blocks them, and `.claude/settings.json`
+denies Claude Code reads of them. The shell deny rules are best-effort.
+
 ## Secrets
 
 `SECRET_ENVVARS` in `plexy/cli.py` maps the secret config keys (`token`, `tmdb_key`) to their env vars. Click
@@ -36,9 +40,10 @@ the user token from plex.tv (`MyPlexAccount.user` and `MyPlexUser.get_token`) an
 it raises `PlexUserError`. The `preferences` command shows each `plexy.Error` as a Click error, with no
 traceback. Without `user`, plexy sends no request to plex.tv.
 
-YAML needs the `yaml` extra (see `pyproject.toml`). Local `plexy*.{yml,yaml,json}` files can contain a Plex
-token or a TMDB key. `.gitignore` ignores them, a pre-commit hook blocks them, and `.claude/settings.json`
-denies Claude Code reads of them. The shell deny rules are best-effort.
+plex.tv accepts only Plex account tokens. The token of a shared user or a managed user is often a server
+token, and plex.tv answers `401`. The Plex server has no endpoint that gives the owner of a server token:
+`/accounts` is for the admin only, and `/status/sessions/history/all` gives only a numeric `accountID`. So
+`user` cannot work with a server token, and plexy raises `PlexUserError`.
 
 ## Parameter types
 
