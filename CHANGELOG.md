@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Add support for Python 3.15.
+- New tagline: "Your language, your way". `plexy --help` and the PyPI summary show it.
+- New README for new users, with the common scenarios and a demo GIF. The full CLI reference is in `docs/usage.md`.
 - Fix the stream rank when the desired language has no country or script. With `--language en`, plexy now selects a normal `en-US` subtitle before an `en` SDH subtitle. With `en-US` audio, plexy no longer selects subtitles. See "Rank of the streams" in `docs/stream-selection.md`.
 - Fix the stream rank for forced and audio description streams. plexy now selects a full subtitle before a forced "Signs & Songs" subtitle in the same base language. plexy reads the `forced`, `hearingImpaired`, and `visualImpaired` flags from Plex, and the flag words in all the title fields. plexy now requires trakit 0.5.0.
 

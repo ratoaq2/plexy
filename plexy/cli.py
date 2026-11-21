@@ -162,7 +162,7 @@ def set_default_config(ctx: click.Context, param: click.Parameter | None, config
 @click.version_option(__version__)
 @click.pass_context
 def plexy(ctx: click.Context, url: str, token: str, tmdb_key: str | None) -> None:
-    """Your Plex, your way."""
+    """Your language, your way."""
     settings = Settings(url=url, token=token, tmdb_key=tmdb_key, cache_dir=dirs.user_cache_dir)
     ctx.obj = settings
 

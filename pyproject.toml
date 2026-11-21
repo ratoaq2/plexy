@@ -1,7 +1,7 @@
 [project]
 name = "plexy"
 version = "0.3.0.dev0"
-description = "Your Plex, your way"
+description = "Your language, your way"
 readme = "README.md"
 license = "MIT"
 authors = [
@@ -72,6 +72,9 @@ dev = [
     "pre-commit>=4.0.0",
     "types-requests>=2.33.0.20260906",
 ]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["scripts/brand"]
 
 [tool.pytest.ini_options]
 markers = ["live: reads from a real Plex server. Set PLEXY_TEST_CONFIG to run it (see docs/testing.md)."]
