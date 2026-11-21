@@ -37,7 +37,8 @@ default audio track. Some files have a default track in a dubbed language. For a
 
 Plexy gives a lower priority to:
 
-- Commentary audio tracks.
+- Commentary and audio description tracks.
+- Forced subtitle tracks, for example "Signs & Songs".
 - Closed caption (CC) and hearing-impaired (SDH) subtitle tracks.
 
 > [!WARNING]

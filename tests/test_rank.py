@@ -75,6 +75,59 @@ def video_part(*streams: ET.Element) -> VideoPart:
             id="matching SDH before normal with no country",
         ),
         pytest.param("pt-BR", [subtitle("pt-BR", 6), subtitle("pt-BR", -1, id="47")], 6, id="embedded before external"),
+        pytest.param(
+            "en",
+            [
+                subtitle(
+                    "en", 3, title="Signs & Songs", extendedDisplayTitle="Signs & Songs - English (SRT)", forced="1"
+                ),
+                subtitle("en", 4, title="Full Subtitles", extendedDisplayTitle="Full Subtitles - English (SRT)"),
+            ],
+            4,
+            id="full before forced",
+        ),
+        pytest.param(
+            "en",
+            [
+                subtitle("en", 3, title="English [Forced]", extendedDisplayTitle="English [Forced] (SRT)", forced="1"),
+                subtitle("en", 4),
+            ],
+            4,
+            id="full before forced title",
+        ),
+        pytest.param(
+            "en",
+            [
+                subtitle("en", 3, title="Signs & Songs", extendedDisplayTitle="Signs & Songs - English (SRT)"),
+                subtitle("en", 4, title="Full Subtitles", extendedDisplayTitle="Full Subtitles - English (SRT)"),
+            ],
+            4,
+            id="full before signs and songs title",
+        ),
+        pytest.param(
+            "en", [subtitle("en", 3, hearingImpaired="1"), subtitle("en", 4)], 4, id="normal before Plex SDH flag"
+        ),
+        pytest.param(
+            "en-US",
+            [subtitle("en-US", 3, forced="1"), subtitle("en-GB", 4)],
+            4,
+            id="full other country before matching forced",
+        ),
+        pytest.param(
+            "zh-Hant",
+            [subtitle("zh-Hant", 3, forced="1"), subtitle("zh-Hans", 4)],
+            4,
+            id="full other script before matching forced",
+        ),
+        pytest.param(
+            "en",
+            [subtitle("en", 3, forced="1"), subtitle("en", 4, title="SDH", extendedDisplayTitle="English SDH (SRT)")],
+            4,
+            id="SDH before forced",
+        ),
+        pytest.param(
+            "en", [subtitle("de", 3), subtitle("en", 4, forced="1")], 4, id="forced before other base language"
+        ),
     ],
 )
 def test_subtitle_rank(language: str, streams: list[ET.Element], expected: int) -> None:
@@ -104,6 +157,21 @@ def test_subtitle_rank(language: str, streams: list[ET.Element], expected: int) 
             [audio("en", 1, title="Commentary", extendedDisplayTitle="English Commentary (AAC)"), audio("en", 2)],
             2,
             id="normal before commentary",
+        ),
+        pytest.param(
+            DUBBED,
+            [
+                audio("en", 1, title="Audio Description", extendedDisplayTitle="English Audio Description (AAC)"),
+                audio("en", 2),
+            ],
+            2,
+            id="normal before audio description",
+        ),
+        pytest.param(
+            DUBBED,
+            [audio("en", 1, visualImpaired="1"), audio("en", 2)],
+            2,
+            id="normal before Plex audio description flag",
         ),
         pytest.param(
             ORIGINAL,
@@ -220,10 +288,6 @@ def test_subtitle_options(options: dict[str, typing.Any], expected: int) -> None
     assert chosen.index == expected
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="get_title gives trakit only the longest title field. A flag word in a shorter field is lost.",
-)
 def test_flag_word_in_short_title() -> None:
     # given
     elem = video(part(subtitle("pt", 1, title="SDH", displayTitle="Portuguese", extendedDisplayTitle=None)))

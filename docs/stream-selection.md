@@ -53,30 +53,37 @@ plexy sorts the streams by rank and selects the first. The code is `VideoPart.__
 - **Match**: a stream matches the target when each part that the target has is the same in the stream. A part
   that the target does not have has no effect. The target `en` matches `en`, `en-US`, and `en-GB`. The target
   `pt-BR` matches only `pt-BR`. The target `zh-TW-Hant` does not match `zh-TW`, because `zh-TW` has no script.
-- **Flagged stream**: a commentary, closed-caption, or hearing-impaired (SDH) stream. A normal stream has no
-  flag.
+- **Flag**: a mark on a stream. plexy reads a flag from Plex (`forced`, `hearingImpaired`, `visualImpaired`)
+  or from a word in the title fields (`trakit`). It reads all the title fields of the stream.
+- **Missing content**: a forced, commentary, or audio description stream. It does not have all the dialogue.
+  A forced subtitle has only some lines, for example "Signs & Songs".
+- **Extra content**: a closed-caption or hearing-impaired (SDH) stream. It has all the dialogue and more text.
+- **Full stream**: a stream with no missing content. A normal stream has no flag.
 - **External stream**: a subtitle file next to the media file. An embedded stream is in the media file.
 
 ### Groups
 
 The groups, from best to worst:
 
-1. Normal streams that match the target.
-2. Flagged streams that match the target.
-3. Streams with the same base language that do not match the target, in this order:
-   1. Same script as the target, other country.
-   2. Other script, same country as the target.
-   3. Other script and other country.
+1. Full streams with the same base language as the target, in this order:
+   1. Normal streams that match the target.
+   2. Streams with extra content that match the target.
+   3. Streams that do not match the target, in this order:
+      1. Same script as the target, other country.
+      2. Other script, same country as the target.
+      3. Other script and other country.
 
-   A part that the target does not have counts as the same. For example, with the target `pt-BR`, `pt` and
-   `pt-PT` both have the same script.
-4. Streams in another base language.
+      A part that the target does not have counts as the same. For example, with the target `pt-BR`, `pt`
+      and `pt-PT` both have the same script.
+2. Streams with missing content and the same base language as the target, in the order of group 1.
+3. Streams in another base language.
 
 ### Order in a group
 
-In each group, and in each step of group 3, plexy uses these rules in this order:
+In each group, and in each step of a group, plexy uses these rules in this order:
 
-1. A normal stream comes first. Then an SDH stream, then a closed-caption stream, then a commentary stream.
+1. A normal stream comes first. Then an SDH stream, a closed-caption stream, an audio description stream, a
+   forced stream, and a commentary stream.
 2. A stream in the exact target language comes first. With the target `fr`, `fr` comes before `fr-CA`.
 3. An embedded stream comes before an external stream.
 4. The stream with the lower index comes first.
@@ -87,13 +94,18 @@ In each group, and in each step of group 3, plexy uses these rules in this order
 | --- | --- | --- | --- |
 | `en` | `en-US` normal, `en` SDH | `en-US` normal | Both match. A normal stream comes before an SDH stream. |
 | `en` | `en-US` normal, `en` normal | `en` normal | Both match and are normal. `en` is the exact target. |
-| `pt-BR` | `pt-BR` SDH, `pt` normal | `pt-BR` SDH | Only `pt-BR` matches. A match comes first, also when it has a flag. |
-| `zh-Hant` | `zh-Hant` SDH, `zh-Hans` normal | `zh-Hant` SDH | Only `zh-Hant` matches. A match comes first, also when it has a flag. |
-| `en-US` | `en-US` SDH, `en-GB` normal | `en-US` SDH | Only `en-US` matches. A match comes first, also when it has a flag. |
+| `pt-BR` | `pt-BR` SDH, `pt` normal | `pt-BR` SDH | Only `pt-BR` matches. A match comes first, also with extra content. |
+| `zh-Hant` | `zh-Hant` SDH, `zh-Hans` normal | `zh-Hant` SDH | Only `zh-Hant` matches. A match comes first, also with extra content. |
+| `en-US` | `en-US` SDH, `en-GB` normal | `en-US` SDH | Only `en-US` matches. A match comes first, also with extra content. |
 | `zh-TW-Hant` | `zh-CN` normal, `zh-TW` normal | `zh-TW` normal | No stream matches. `zh-TW` has the same country as the target. |
 | `pt-BR` | `pt-BR` external, `pt-BR` embedded | `pt-BR` embedded | Both match and are normal. An embedded stream comes first. |
+| `en` | `en` "Signs & Songs", `en` "Full Subtitles" | `en` "Full Subtitles" | "Signs & Songs" is forced. A full stream comes first. |
+| `en-US` | `en-US` forced, `en-GB` normal | `en-GB` normal | Only `en-US` matches, but it has missing content. A full stream comes first. |
+| `zh-Hant` | `zh-Hant` forced, `zh-Hans` normal | `zh-Hans` normal | A full stream comes first, also in another script. |
+| `en` | `en` forced, `de` normal | `en` forced | The only stream in the base language. Another base language comes last. |
 
-What the user types decides first. A flag decides only between streams in the same group.
+The base language decides first. Then a full stream comes before a stream with missing content. Then
+the match with the target decides. Extra content decides only between streams in the same group.
 
 Limit: with `en`, the country of the stream has no effect. Between `en-US` and `en-GB`, the lower index wins.
 To get `en-US` first, type `en-US`. Then an `en-US` SDH stream comes before an `en-GB` normal stream.

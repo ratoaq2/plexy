@@ -48,8 +48,8 @@ VIDEO_ATTRS = {
 MEDIA_ATTRS = {"id", "container", "audioCodec", "videoCodec", "audioChannels", "videoResolution"}
 PART_ATTRS = {"id", "key", "file", "container"}
 STREAM_ATTRS = {
-    "streamType", "id", "index", "codec", "default", "selected", "forced", "hearingImpaired", "language",
-    "languageCode", "languageTag", "title", "displayTitle", "extendedDisplayTitle", "channels",
+    "streamType", "id", "index", "codec", "default", "selected", "forced", "hearingImpaired", "visualImpaired",
+    "language", "languageCode", "languageTag", "title", "displayTitle", "extendedDisplayTitle", "channels",
     "audioChannelLayout", "key", "format", "profile",
 }  # fmt: skip
 STREAM_TEXT_ATTRS = ("language", "title", "displayTitle", "extendedDisplayTitle")
@@ -87,11 +87,12 @@ def is_known(word: str) -> bool:
     return ends[-1]
 
 
-def stream_result(stream: ET.Element) -> tuple[str, bool, bool, bool]:
+def stream_result(stream: ET.Element) -> tuple[str, bool, bool, bool, bool, bool]:
     """The language and the flags that plexy finds for a stream."""
     cls = STREAM_CLASSES.get(stream.get("streamType", ""), plexapi.media.MediaPartStream)
     result = Stream.from_stream(cls(None, stream, initpath="/library/metadata"))
-    return str(result.language), result.commentary, result.closed_caption, result.hearing_impaired
+    flags = result.commentary, result.closed_caption, result.hearing_impaired, result.forced, result.descriptive
+    return str(result.language), *flags
 
 
 @functools.cache

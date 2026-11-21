@@ -299,12 +299,18 @@ class Stream:
         commentary: bool,
         closed_caption: bool,
         hearing_impaired: bool,
+        forced: bool,
+        descriptive: bool,
     ):
         self.stream = stream
         self.language = language
+        audio_stream = self.audio_stream
+        subtitle_stream = self.subtitle_stream
         self.commentary = commentary
         self.closed_caption = closed_caption or self.codec == SubtitleCodec.CC
-        self.hearing_impaired = hearing_impaired
+        self.hearing_impaired = hearing_impaired or bool(subtitle_stream and subtitle_stream.hearingImpaired)
+        self.forced = forced or bool(subtitle_stream and subtitle_stream.forced)
+        self.descriptive = descriptive or bool(audio_stream and audio_stream.visualImpaired)
 
     @staticmethod
     def from_stream(stream: plexapi.media.MediaPartStream) -> Stream:
@@ -326,6 +332,8 @@ class Stream:
             commentary=guessed.get("commentary", False),
             hearing_impaired=guessed.get("hearing_impaired", False),
             closed_caption=guessed.get("closed_caption", False),
+            forced=guessed.get("forced", False),
+            descriptive=guessed.get("descriptive", False),
         )
 
     @property
@@ -408,10 +416,13 @@ class VideoPart:
             other_country = same_base and desired_language.country not in (None, language.country)
             return (
                 not same_base,
+                stream.forced or stream.commentary or stream.descriptive,  # missing content
                 not matches(language, desired_language),
                 other_script,
                 other_country,
                 stream.commentary,
+                stream.forced,
+                stream.descriptive,
                 stream.closed_caption,
                 stream.hearing_impaired,
                 language != desired_language,

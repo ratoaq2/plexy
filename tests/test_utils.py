@@ -10,9 +10,17 @@ from plexy.utils import get_expected_languages, get_title
 @pytest.mark.parametrize(
     "values, expected",
     [
-        ({"title": "a", "displayTitle": "a title", "extendedDisplayTitle": "an extended title"}, "an extended title"),
-        ({"title": "a title", "displayTitle": "short", "extendedDisplayTitle": None}, "a title"),
-        ({"title": "abcde", "displayTitle": "title", "extendedDisplayTitle": None}, "title"),
+        (
+            {"title": "a", "displayTitle": "a title", "extendedDisplayTitle": "an extended title"},
+            "an extended title a title",
+        ),
+        ({"title": "a title", "displayTitle": "short", "extendedDisplayTitle": None}, "a title short"),
+        ({"title": "abcde", "displayTitle": "title", "extendedDisplayTitle": None}, "title abcde"),
+        (
+            {"title": "SDH", "displayTitle": "English (SRT)", "extendedDisplayTitle": "SDH - English (SRT)"},
+            "SDH - English (SRT)",
+        ),
+        ({"title": "SDH", "displayTitle": "Portuguese", "extendedDisplayTitle": None}, "Portuguese SDH"),
         ({"title": None, "displayTitle": None, "extendedDisplayTitle": None}, None),
     ],
 )

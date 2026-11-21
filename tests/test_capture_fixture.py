@@ -253,6 +253,6 @@ def test_sanitize_item_warns_when_plexy_result_changes(cf: ModuleType, monkeypat
 
     # then
     assert [w for w in renamer.warnings if w.startswith("Stream 3:")] == [
-        "Stream 3: plexy finds ('pt-BR', False, False, False) after the sanitize, "
-        "and ('pt-BR', False, False, True) before."
+        "Stream 3: plexy finds ('pt-BR', False, False, False, False, False) after the sanitize, "
+        "and ('pt-BR', False, False, True, False, False) before."
     ]
