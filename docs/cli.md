@@ -15,11 +15,35 @@ The user reference (all options, parameter formats, configuration files and thei
 later file replaces each top-level key, for example all of `preferences`. The user config directory comes
 from `appdirs`.
 
-The `plexy` group has `--url`, `--token`, and `--tmdb-key`. The config keys are `url`, `token`, and
-`tmdb_key`. The `preferences` command writes its cache to the user cache directory (`appdirs`).
+The `plexy` group has `--url`, `--token`, `--tmdb-key`, and `--user`. The config keys are `url`, `token`,
+`tmdb_key`, and `user`. The `preferences` command writes its cache to the user cache directory (`appdirs`).
 
-YAML needs the `yaml` extra (see `pyproject.toml`). `.gitignore` ignores local `plexy*.yml` files, because
-they can contain a Plex token or a TMDB key.
+YAML needs the `yaml` extra (see `pyproject.toml`). Local `plexy*.{yml,yaml,json}` files can contain a Plex
+token or a TMDB key. `.gitignore` ignores them, a pre-commit hook blocks them, and `.claude/settings.json`
+denies Claude Code reads of them. The shell deny rules are best-effort.
+
+## Secrets
+
+`SECRET_ENVVARS` in `plexy/cli.py` maps the secret config keys (`token`, `tmdb_key`) to their env vars. Click
+reads the env var with `envvar=`, and puts it before the `default_map`. `set_default_config` reads the file
+of `<env var>_FILE` into the `default_map`, after the config files. So the order is: command line, env var,
+file, config file. `docs/usage.md` gives the order for users.
+
+`secret_source` gets the source of each secret from `ctx.get_parameter_source`. `Settings` keeps it, and
+`Plex` writes it to the debug log. Never log the value of a secret.
+
+## Plex user
+
+With `user`, `Plex.server` asks plex.tv for the account of the token (`myPlexAccount`). It keeps the token
+when the account is the user. When the account email is `myPlexUsername` of the server (the admin), it gets
+the user token from plex.tv (`MyPlexAccount.user` and `MyPlexUser.get_token`) and connects again with it. Else
+it raises `PlexUserError`. The `preferences` command shows each `plexy.Error` as a Click error, with no
+traceback. Without `user`, plexy sends no request to plex.tv.
+
+plex.tv accepts only Plex account tokens. The token of a shared user or a managed user is often a server
+token, and plex.tv answers `401`. The Plex server has no endpoint that gives the owner of a server token:
+`/accounts` is for the admin only, and `/status/sessions/history/all` gives only a numeric `accountID`. So
+`user` cannot work with a server token, and plexy raises `PlexUserError`.
 
 ## Parameter types
 

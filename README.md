@@ -136,12 +136,12 @@ Select subtitles also when the audio is in your language:
 plexy preferences --language en --force-subtitles dubbed
 ```
 
-Two Plex users with different preferences. The token selects the user, so each user has a configuration file
-with a token (see [More than one Plex user](docs/usage.md#more-than-one-plex-user)):
+Two Plex users with different preferences, with one configuration file for each user (see
+[More than one Plex user](#more-than-one-plex-user)):
 
 ```bash
-plexy --config me.yml preferences --language pt-BR original
-plexy --config friend.yml preferences --language de dubbed
+plexy --config <path>/me.yml preferences --language pt-BR original
+plexy --config <path>/friend.yml preferences --language de dubbed
 ```
 
 ### Main options
@@ -166,7 +166,10 @@ These are the options of `plexy preferences`. The last argument is the watching 
 | `--debug` | Show information to report a bug. |
 
 Before `preferences`, `--url`, `--token`, and `--tmdb-key` connect plexy to your server and to TMDB.
+`--user` selects the Plex user.
 `--config` gives a configuration file. For all options and their formats, see [docs/usage.md](docs/usage.md).
+The env vars `PLEXY_TOKEN` and `PLEXY_TMDB_KEY`, or `PLEXY_TOKEN_FILE` and `PLEXY_TMDB_KEY_FILE`, can also give
+the secrets. See [Token and TMDB key](docs/usage.md#token-and-tmdb-key).
 
 ### Configuration file
 
@@ -197,6 +200,27 @@ plexy reads a file in your user configuration folder, `plexy.yml` in the current
 `--config` option. An option on the command line replaces the value in the file. For the order and the
 folders, see [Configuration file](docs/usage.md#configuration-file).
 
+### More than one Plex user
+
+plexy changes the tracks for one Plex user at a time. There are two methods to select the user.
+
+**One configuration file for each user (recommended).** Each file contains the token of that user. Keep the
+files outside your project folders, and give the path with `--config`:
+
+```yaml
+# <path>/friend.yml
+token: <the Plex token of friend>
+```
+
+**One admin token for all users.** With the token of the server admin, `--user` (or the `user` key) selects the
+user. plexy gets a token for that user from plex.tv. The files then do not contain a token:
+
+```bash
+plexy --user friend preferences --language de dubbed
+```
+
+For the details, see [More than one Plex user](docs/usage.md#more-than-one-plex-user).
+
 ### Original language from TMDB
 
 For `original`, plexy finds the original language in the media file: the language of the default video track,
@@ -219,8 +243,9 @@ plexy sorts the tracks with rules, for example a normal track before an SDH trac
 plexy removes the subtitles when the audio is in your language. To keep subtitles, use `--force-subtitles`.
 
 **Does plexy change the tracks for all the users of my Plex server?**
-No. It changes them only for the Plex user of the token. For a second user, use the token of that user. See
-[More than one Plex user](docs/usage.md#more-than-one-plex-user).
+No. It changes them only for one Plex user: the user of the token, or the user of `--user`. For a second user,
+use a configuration file with the token of that user, or the admin token with `--user`. See
+[More than one Plex user](#more-than-one-plex-user).
 
 **Does plexy change my media files?**
 No. It changes only the track selection on the Plex server.

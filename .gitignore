@@ -100,6 +100,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
 .venv
 env/
 venv/
@@ -130,6 +131,8 @@ dmypy.json
 
 # local plexy config files
 plexy*.yml
+plexy*.yaml
+plexy*.json
 
 # local work and Claude Code files
 plans/

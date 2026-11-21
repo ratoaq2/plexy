@@ -22,6 +22,9 @@ STREAM_TYPES = {"audioStreamID": "2", "subtitleStreamID": "3"}
 section_re = re.compile(r"^/library/sections/(?P<id>\d+)/(?P<route>all|collections)$")
 metadata_re = re.compile(r"^/library/metadata/(?P<key>\d+)$")
 part_re = re.compile(r"^/library/parts/(?P<id>\d+)$")
+# plex.tv gives this answer for a token that is not a plex.tv account token, for example a server token
+PLEX_TV_UNAUTHORIZED = '<errors><error code="1001" message="User could not be authenticated" status="401"/></errors>'
+shared_servers_re = re.compile(r"^/api/servers/\w+/shared_servers$")
 
 
 class Request(typing.NamedTuple):
@@ -53,6 +56,13 @@ class FakePlex(requests.Session):
         self.puts: list[Request] = []
         self.answers: list[tuple[dict[str, str], list[str]]] = []
         self.searched: set[tuple[str, str]] = set()
+        # the token of each PlexServer connection
+        self.tokens: list[str] = []
+        # plex.tv: the account of each token, the users of the admin, and their tokens for this server
+        self.accounts: dict[str, ET.Element] = {}
+        self.users = ET.Element("MediaContainer")
+        self.shared_servers = ET.Element("MediaContainer")
+        self.owner: str | None = None
 
     @classmethod
     def from_folder(cls, scenario: str) -> "FakePlex":
@@ -81,11 +91,31 @@ class FakePlex(requests.Session):
         """Give the result of each search that has all the `query` values. Other searches give no result."""
         self.answers.append((query, [str(key) for key in rating_keys]))
 
+    def account(self, token: str, username: str, email: str = "", title: str = "", admin: bool = False) -> None:
+        """Make plex.tv give this account for `token`. The admin account owns the server."""
+        elem = ET.Element("user", id=str(len(self.accounts) + 1), username=username, email=email, scrobbleTypes="1")
+        elem.set("title", title or username)
+        ET.SubElement(elem, "subscription")
+        ET.SubElement(elem, "profile")
+        self.accounts[token] = elem
+        if admin:
+            self.owner = email
+
+    def user(self, user_id: int, token: str, title: str, username: str = "", email: str = "") -> None:
+        """Add a user of the admin account, with the token of this user for the server."""
+        ET.SubElement(self.users, "User", id=str(user_id), title=title, username=username, email=email)
+        ET.SubElement(self.shared_servers, "SharedServer", userID=str(user_id), accessToken=token)
+
     def get(self, url: str | bytes, **kwargs: typing.Any) -> requests.Response:
         parsed = urllib.parse.urlsplit(str(url))
         params = dict(urllib.parse.parse_qsl(parsed.query))
         params.update({k: str(v) for k, v in (kwargs.get("params") or {}).items()})
         self.gets.append(Request(parsed.path, params))
+        if parsed.netloc == "plex.tv":
+            token = (kwargs.get("headers") or {}).get("X-Plex-Token", "")
+            if parsed.path == "/api/v2/user" and token not in self.accounts:
+                return self._response(str(url), ET.fromstring(PLEX_TV_UNAUTHORIZED), status_code=401)
+            return self._response(str(url), self._plex_tv(parsed.path, token))
         return self._response(str(url), self._route(parsed.path, params))
 
     def put(self, url: str | bytes, data: typing.Any = None, **kwargs: typing.Any) -> requests.Response:
@@ -99,6 +129,10 @@ class FakePlex(requests.Session):
         return self._response(str(url), None)
 
     @property
+    def plex_tv_requests(self) -> list[Request]:
+        return [r for r in self.gets if r.path.startswith("/api/")]
+
+    @property
     def searches(self) -> list[Request]:
         return [r for r in self.gets if section_re.match(r.path) and "type" in r.params]
 
@@ -106,7 +140,10 @@ class FakePlex(requests.Session):
         if path == "/":
             # A new PlexServer connects: a new plexy run starts.
             self.searched.clear()
-            return ET.parse(SERVER / "root.xml").getroot()
+            root = ET.parse(SERVER / "root.xml").getroot()
+            if self.owner:
+                root.set("myPlexUsername", self.owner)
+            return root
         if path == "/library":
             return ET.parse(SERVER / "library.xml").getroot()
         if path == "/library/sections":
@@ -123,6 +160,15 @@ class FakePlex(requests.Session):
             if match.group("route") == "all" and params.get("type") in SEARCH_TYPES:
                 return self._search(section_id, params)
         raise AssertionError(f"FakePlex has no route for GET {path} {params}")
+
+    def _plex_tv(self, path: str, token: str) -> ET.Element:
+        if path == "/api/v2/user":
+            return copy.deepcopy(self.accounts[token])
+        if path == "/api/users/":
+            return copy.deepcopy(self.users)
+        if shared_servers_re.match(path):
+            return copy.deepcopy(self.shared_servers)
+        raise AssertionError(f"FakePlex has no route for GET https://plex.tv{path}")
 
     def _section_meta(self, name: str, section_id: str) -> ET.Element:
         section_type = next(d.get("type", "") for d in self.sections if d.get("key") == section_id)
@@ -169,9 +215,9 @@ class FakePlex(requests.Session):
                     if stream.get("id") == params[name]:
                         stream.set("selected", "1")
 
-    def _response(self, url: str, elem: ET.Element | None) -> requests.Response:
+    def _response(self, url: str, elem: ET.Element | None, status_code: int = 200) -> requests.Response:
         response = requests.Response()
-        response.status_code = 200
+        response.status_code = status_code
         response.url = url
         response.encoding = "utf-8"
         response._content = b"" if elem is None else ET.tostring(elem, encoding="utf-8")

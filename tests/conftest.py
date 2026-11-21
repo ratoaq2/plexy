@@ -19,6 +19,7 @@ def fake_plex(monkeypatch: pytest.MonkeyPatch) -> typing.Callable[..., FakePlex]
         init = plexapi.server.PlexServer.__init__
 
         def fake_init(self: plexapi.server.PlexServer, baseurl: str, token: str, **kwargs: typing.Any) -> None:
+            fake.tokens.append(token)
             init(self, baseurl, token, session=fake)
 
         monkeypatch.setattr(plexapi.server.PlexServer, "__init__", fake_init)

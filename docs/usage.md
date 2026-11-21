@@ -6,7 +6,7 @@ This page is the reference for the plexy command line. For a first run, read the
 ## Commands
 
 plexy has one command: `preferences`. The options of the `plexy` group (`--url`, `--token`, `--tmdb-key`,
-`--config`) come before the command name. The options of `preferences` come after it:
+`--user`, `--config`) come before the command name. The options of `preferences` come after it:
 
 ```bash
 plexy --config friend.yml preferences --language de dubbed
@@ -43,6 +43,8 @@ Options:
   -t, --token TEXT  Plex token.  [required]
   --tmdb-key TEXT   TMDB read access token or API key. The original preference then gets the
                     original language from TMDB.
+  --user TEXT       Plex user to set the preferences for: a username, an email, or a display name.
+                    Needs the token of the server admin, or the Plex account token of this user.
   --config PATH     Path to the config file.
   --version         Show the version and exit.
   --help            Show this message and exit.
@@ -138,10 +140,35 @@ A later file replaces each top-level key of an earlier file. The `preferences` s
 replaces all the `preferences` section of an earlier file. It does not merge them. An option on the command
 line replaces the value of the configuration files.
 
+### Token and TMDB key
+
+The Plex token and the TMDB key are secrets. Do not keep them in a file in a project folder, a shared folder,
+or a git repository. plexy takes each secret from the first source in this list:
+
+1. The command line: `--token` or `--tmdb-key`. The shell history keeps the value.
+2. The env var `PLEXY_TOKEN` or `PLEXY_TMDB_KEY`.
+3. The env var `PLEXY_TOKEN_FILE` or `PLEXY_TMDB_KEY_FILE`: the path of a file that contains the secret.
+   plexy removes the spaces and the line breaks at the start and at the end. Docker secrets use this method.
+4. The `token` or `tmdb_key` key in a configuration file.
+
+When you set `PLEXY_TOKEN` and `PLEXY_TOKEN_FILE` together, plexy stops with an error. The same rule applies to
+`PLEXY_TMDB_KEY` and `PLEXY_TMDB_KEY_FILE`.
+
+`PLEXY_TOKEN` and `PLEXY_TOKEN_FILE` replace the token of all configuration files. If you use one
+configuration file for each Plex user, do not set them in your shell profile. Then each file gives its own
+token.
+
+With `--debug`, plexy shows the source of each secret, for example `Plex token from PLEXY_TOKEN`. It does not
+show the value.
+
 ### More than one Plex user
 
-The token selects the Plex user. plexy changes the tracks only for this user. To set the preferences of
-two users, use one file for each user. Put the server address in a shared file:
+plexy changes the tracks for one Plex user at a time. Without `--user`, this is the user of the token. There
+are two methods to set the preferences of more than one user.
+
+#### One configuration file for each user (recommended)
+
+Each file contains the token of one user. Put the server address in a shared file:
 
 ```yaml
 # plexy.yml in the current folder
@@ -149,19 +176,58 @@ url: http://myplexserver:32400
 ```
 
 ```yaml
-# me.yml
+# <path>/me.yml
 token: <the token of the first user>
 ```
 
 ```yaml
-# friend.yml
+# <path>/friend.yml
 token: <the token of the second user>
 ```
 
 ```bash
-plexy --config me.yml preferences --language pt-BR original
-plexy --config friend.yml preferences --language de dubbed
+plexy --config <path>/me.yml preferences --language pt-BR original
+plexy --config <path>/friend.yml preferences --language de dubbed
 ```
+
+Keep these files outside your project folders, for example in your user configuration folder.
+
+Do not add the `user` key to these files. The token of a shared user or a managed user is often a server
+token. plex.tv does not accept a server token, so plexy cannot check its owner. Then plexy stops with an
+error.
+
+#### One admin token for all users
+
+With the token of the server admin, `--user` (or the `user` key) selects the user. Then the files do not
+contain a token:
+
+```yaml
+# <path>/friend.yml
+user: friend
+preferences:
+  language: de
+  watching_preference: dubbed
+```
+
+```bash
+export PLEXY_TOKEN_FILE=<path of the file with the admin token>
+plexy --url http://myplexserver:32400 --config <path>/friend.yml preferences
+```
+
+#### How plexy uses `--user`
+
+Give a username, an email, or a display name. The comparison ignores case. plexy asks plex.tv for the Plex
+account of the token:
+
+1. plex.tv does not accept the token: plexy stops with an error. plex.tv accepts only the token of a Plex
+   account, not a server token. To use a server token, remove `--user` and the `user` key.
+2. The account is the user of `--user`: plexy uses the token.
+3. The account is the admin of the server: plexy gets a token for the user from plex.tv, and works as that
+   user. If the user does not exist or has no access to the server, plexy stops with an error.
+4. Else, plexy stops with an error, for example `The token belongs to neighbor, not to friend`.
+
+With `--user`, plexy needs access to plex.tv. To work as another user with the admin token, the server must be
+signed in to the Plex account of the admin.
 
 ## Original language from TMDB
 
@@ -183,19 +249,31 @@ requests only for new titles. The rules are in [Stream selection](stream-selecti
 
 ## Docker
 
-The image [`ratoaq2/plexy`](https://hub.docker.com/r/ratoaq2/plexy) reads JSON and YAML configuration files.
-For example, `plexy.json`:
+The image [`ratoaq2/plexy`](https://hub.docker.com/r/ratoaq2/plexy) runs the `plexy` command. Give the token
+as a Docker secret. Docker mounts the secret file in `/run/secrets/`, and `PLEXY_TOKEN_FILE` gives its path.
+For example, with Docker Compose:
 
-```json
-{
-  "url": "http://myplexserver:32400",
-  "token": "<your Plex token>"
-}
+```yaml
+services:
+  plexy:
+    image: ratoaq2/plexy
+    command: --url http://myplexserver:32400 preferences --language pt-BR original
+    environment:
+      PLEXY_TOKEN_FILE: /run/secrets/plex_token
+    secrets:
+      - plex_token
+
+secrets:
+  plex_token:
+    file: ./plex_token.txt
 ```
 
-The image starts in the `/` folder. Mount the file there, so plexy finds it as `plexy.json` in the current
-folder:
+`plex_token.txt` contains only the token. For a TMDB key, add a second secret and `PLEXY_TMDB_KEY_FILE`.
+
+The image also reads JSON and YAML configuration files. It starts in the `/` folder. Mount a file there, so
+plexy finds it as `plexy.json` in the current folder. The file does not need a token:
 
 ```bash
-docker run --rm -v "$PWD/plexy.json:/plexy.json" ratoaq2/plexy preferences --language pt-BR original
+docker run --rm -v "$PWD/plexy.json:/plexy.json" -e PLEXY_TOKEN_FILE=/run/secrets/plex_token \
+  -v "$PWD/plex_token.txt:/run/secrets/plex_token:ro" ratoaq2/plexy preferences --language pt-BR original
 ```

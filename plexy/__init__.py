@@ -20,3 +20,4 @@ from .api import (
     Title,
     WatchingPreference,
 )
+from .exceptions import Error
