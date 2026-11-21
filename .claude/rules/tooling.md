@@ -16,3 +16,6 @@ same checks as CI. `.python-version` is the newest version of the CI matrix.
 The mypy overrides in `pyproject.toml` list the libraries without stubs. `docs/typing.md` explains them.
 
 `scripts/capture_fixture.py` writes test fixtures and removes private data. `docs/testing.md` explains it.
+
+`scripts/brand.py` makes the logo, the icon, and the social card in `docs/images/`. Its docstring tells how to
+run it. The tagline in the images is the `description` in `pyproject.toml`.
