@@ -188,7 +188,7 @@ def secret_source(ctx: click.Context, key: str) -> str:
 @click.option(
     "--user",
     help="Plex user to set the preferences for: a username, an email, or a display name. "
-    "The token must belong to this user or to the server admin.",
+    "Needs the token of the server admin, or the Plex account token of this user.",
 )
 @click.option(
     "--config",

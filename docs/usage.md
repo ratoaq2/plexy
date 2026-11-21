@@ -44,7 +44,7 @@ Options:
   --tmdb-key TEXT   TMDB read access token or API key. The original preference then gets the
                     original language from TMDB.
   --user TEXT       Plex user to set the preferences for: a username, an email, or a display name.
-                    The token must belong to this user or to the server admin.
+                    Needs the token of the server admin, or the Plex account token of this user.
   --config PATH     Path to the config file.
   --version         Show the version and exit.
   --help            Show this message and exit.
