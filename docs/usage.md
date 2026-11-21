@@ -154,8 +154,9 @@ or a git repository. plexy takes each secret from the first source in this list:
 When you set `PLEXY_TOKEN` and `PLEXY_TOKEN_FILE` together, plexy stops with an error. The same rule applies to
 `PLEXY_TMDB_KEY` and `PLEXY_TMDB_KEY_FILE`.
 
-`PLEXY_TOKEN` replaces the token of all configuration files. If you use one configuration file for each Plex
-user, do not set `PLEXY_TOKEN` in your shell profile. Then each file gives its own token.
+`PLEXY_TOKEN` and `PLEXY_TOKEN_FILE` replace the token of all configuration files. If you use one
+configuration file for each Plex user, do not set them in your shell profile. Then each file gives its own
+token.
 
 With `--debug`, plexy shows the source of each secret, for example `Plex token from PLEXY_TOKEN`. It does not
 show the value.
@@ -192,7 +193,7 @@ plexy --config <path>/friend.yml preferences --language de dubbed
 Keep these files outside your project folders, for example in your user configuration folder.
 
 Do not add the `user` key to these files. The token of a shared user or a managed user is often a server
-token. plex.tv does not accept a server token, so plexy cannot check its owner. Then `--user` stops with an
+token. plex.tv does not accept a server token, so plexy cannot check its owner. Then plexy stops with an
 error.
 
 #### One admin token for all users
@@ -215,17 +216,18 @@ plexy --url http://myplexserver:32400 --config <path>/friend.yml preferences
 
 #### How plexy uses `--user`
 
-Give a username, an email, or a display name. The comparison ignores case. plexy asks plex.tv for the owner
-of the token:
+Give a username, an email, or a display name. The comparison ignores case. plexy asks plex.tv for the Plex
+account of the token:
 
-1. The owner is the user of `--user`: plexy uses the token.
-2. The owner is the admin of the server: plexy gets a token for the user from plex.tv, and works as that user.
-3. Else, plexy stops with an error, for example `The token belongs to neighbor, not to friend`.
+1. plex.tv does not accept the token: plexy stops with an error. plex.tv accepts only the token of a Plex
+   account, not a server token. To use a server token, remove `--user` and the `user` key.
+2. The account is the user of `--user`: plexy uses the token.
+3. The account is the admin of the server: plexy gets a token for the user from plex.tv, and works as that
+   user. If the user does not exist or has no access to the server, plexy stops with an error.
+4. Else, plexy stops with an error, for example `The token belongs to neighbor, not to friend`.
 
-plex.tv accepts only the token of a Plex account. If plex.tv does not accept the token, plexy stops with an
-error. The Plex server cannot tell the owner of a server token either.
-
-With `--user`, plexy needs access to plex.tv, and the server must be signed in to a Plex account.
+With `--user`, plexy needs access to plex.tv. To work as another user with the admin token, the server must be
+signed in to the Plex account of the admin.
 
 ## Original language from TMDB
 
@@ -272,5 +274,6 @@ The image also reads JSON and YAML configuration files. It starts in the `/` fol
 plexy finds it as `plexy.json` in the current folder. The file does not need a token:
 
 ```bash
-docker run --rm -v "$PWD/plexy.json:/plexy.json" -e PLEXY_TOKEN_FILE=/run/secrets/plex_token   -v "$PWD/plex_token.txt:/run/secrets/plex_token:ro" ratoaq2/plexy preferences --language pt-BR original
+docker run --rm -v "$PWD/plexy.json:/plexy.json" -e PLEXY_TOKEN_FILE=/run/secrets/plex_token \
+  -v "$PWD/plex_token.txt:/run/secrets/plex_token:ro" ratoaq2/plexy preferences --language pt-BR original
 ```
