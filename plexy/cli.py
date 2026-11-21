@@ -103,6 +103,8 @@ class DebugProgressBar(typing.Generic[T]):
         if not self.debug:
             return self.progressbar.__enter__()
 
+        return self
+
     def __exit__(
         self,
         exc_type: type[BaseException] | None,
