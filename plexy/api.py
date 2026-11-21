@@ -632,7 +632,7 @@ class Plex:
         except plexapi.exceptions.Unauthorized:
             raise PlexUserError(
                 f"plex.tv does not accept the token, so plexy cannot check that it belongs to {user}. "
-                "--user needs the token of a Plex account or of the server admin."
+                "To use the token as it is, remove --user or the user key."
             ) from None
         names = {name.lower() for name in (account.username, account.email, account.title) if name}
         if user.lower() in names:
