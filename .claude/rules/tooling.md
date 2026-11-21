@@ -19,3 +19,6 @@ The mypy overrides in `pyproject.toml` list the libraries without stubs. `docs/t
 
 `scripts/brand.py` makes the logo, the icon, and the social card in `docs/images/`. Its docstring tells how to
 run it. The tagline in the images is the `description` in `pyproject.toml`.
+
+`scripts/demo.sh` records `docs/images/demo.gif` with VHS. The tape changes tracks on a real Plex server. Use the
+`demo-gif` skill.
