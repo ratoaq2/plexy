@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- plexy now requires trakit 0.6.0. trakit now finds more forced streams: "Signs", "Foreign", and "S&S" in the stream title. It reads "LA" after Spanish as Latin America (`es-419`).
+
 ## 0.3.0
 
 - Add support for Python 3.15.
